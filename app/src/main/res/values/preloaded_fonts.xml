@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="preloaded_fonts" translatable="false">
+        <item>@font/archivo</item>
+        <item>@font/black_han_sans</item>
+        <item>@font/coda</item>
+        <item>@font/dm_serif_display</item>
+        <item>@font/goblin_one</item>
+        <item>@font/krona_one</item>
+    </array>
+</resources>
