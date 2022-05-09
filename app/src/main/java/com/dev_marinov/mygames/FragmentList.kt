@@ -15,16 +15,8 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.loopj.android.http.AsyncHttpClient
-import com.loopj.android.http.RequestParams
-import com.loopj.android.http.TextHttpResponseHandler
-import cz.msebera.android.httpclient.Header
-import org.json.JSONException
-import org.json.JSONObject
 import java.util.*
-import kotlin.collections.ArrayList
 import android.view.Gravity
 import android.widget.ProgressBar
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -34,34 +26,25 @@ class FragmentList : Fragment() {
 
     // api =e0ecba986417447ebbaa87aad9d31458
     lateinit var recyclerView: RecyclerView
-    var adapterList: AdapterList? = null
-    var myViewGroup: ViewGroup? = null
-    var myLayoutInflater: LayoutInflater? = null
-    var gridLayoutManager: GridLayoutManager? = null
-    lateinit var btSetRangeDate: Button
-    lateinit var btCancel: Button
-    lateinit var btOk: Button
-    lateinit var tvDateFrom: TextView
-    lateinit var tvDateTo: TextView
+    var adapterList: AdapterList? = null // адаптер для главного списка
+    var myViewGroup: ViewGroup? = null // контейнер для перезаписи макета при смене конфигурации
+    var myLayoutInflater: LayoutInflater? = null // инфлятор
+    lateinit var btSetRangeDate: Button // кнопка выбора/установка диапазона дат для получения новых данных
+    lateinit var btCancel: Button // кнопка отмены диалога
+    lateinit var btOk: Button // кнопка подтверждения дат
+    lateinit var tvDateFrom: TextView // отображаются даты
+    lateinit var tvDateTo: TextView // отображаются даты
     lateinit var progressBar: ProgressBar
-    var dataFromString: String? = null
-    var dataToString: String? = null
+    var dataFromString: String? = null // переменные просто для работы с датами
+    var dataToString: String? = null // переменные просто для работы с датами
 
-    var onDateSetListenerFrom: DatePickerDialog.OnDateSetListener? = null
-    var onDateSetListenerTo: DatePickerDialog.OnDateSetListener? = null
+    var onDateSetListenerFrom: DatePickerDialog.OnDateSetListener? = null // слушатель даты слева
+    var onDateSetListenerTo: DatePickerDialog.OnDateSetListener? = null // слушатель даты справа
 
     var staggeredGridLayoutManager: StaggeredGridLayoutManager? = null
-    //var lastVisibleItemPositions: IntArray = IntArray()
-//    val arrayListScreenShos: MutableList<String> = ArrayList()
 
-
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    var lastVisibleItemPositions: IntArray? = null
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    var lastVisibleItemPositions2: IntArray? = null
-
-
+    var lastVisibleItemArrayPositions1: IntArray? = null // для первого слушателя recyclerView
+    var lastVisibleItemArrayPositions2: IntArray? = null // для первого слушателя recyclerView
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         myViewGroup = container
@@ -79,24 +62,25 @@ class FragmentList : Fragment() {
         val orientation = requireActivity().resources.configuration.orientation
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
             view = layoutInflater.inflate(R.layout.fragment_list, myViewGroup, false)
-
-            myRecyclerLayoutManagerAdapter(view, 2, (activity as MainActivity?)?.lastVisibleItemPositions)
+            myRecyclerLayoutManagerAdapter(view, 2, (activity as MainActivity?)?.lastVisibleItemPosition1)
         } else {
             view = layoutInflater.inflate(R.layout.fragment_list, myViewGroup, false)
-
-            myRecyclerLayoutManagerAdapter(view, 2, (activity as MainActivity?)?.lastVisibleItemPositions)
+            myRecyclerLayoutManagerAdapter(view, 2, (activity as MainActivity?)?.lastVisibleItemPosition1)
         }
 
         if ((activity as MainActivity?)?.hashMap?.size == 0) {
 
-
-//            tvDateFrom.text = String.format("2019-09-01,")
-//            tvDateTo.text = String.format("2019-09-30")
-
+            // даты по умолчанию при первой загрузке
             dataFromString = String.format("2019-09-01,")
             dataToString = String.format("2019-09-30")
 
-            getData(dataFromString as String, dataToString as String, 1)
+            val requestData = RequestData() // запрос данных и передача параметров
+            requestData.getData(requireActivity(), dataFromString as String, dataToString as String, 1)
+
+            (context as MainActivity?)?.runOnUiThread { // в главном потоке прогрессбар
+                progressBar.visibility = View.VISIBLE
+            }
+
         } else {
             Log.e("333", "FragmentHome arrayList.size()  НЕ ПУСТОЙ=")
         }
@@ -125,37 +109,36 @@ class FragmentList : Fragment() {
         staggeredGridLayoutManager = StaggeredGridLayoutManager(column, StaggeredGridLayoutManager.VERTICAL)
         recyclerView.setLayoutManager(staggeredGridLayoutManager)
 
-//        gridLayoutManager = GridLayoutManager(requireActivity(), column)
-//        recyclerView.layoutManager = gridLayoutManager
-
         adapterList = AdapterList(this.requireActivity(), (activity as MainActivity?)!!.hashMap)
         recyclerView.adapter = adapterList
 
-        btSetRangeDate.setOnClickListener {
+        // метод интерфейса сработает когда мы получим данные от сети
+        (context as MainActivity).setMyInterFaceGames(object : MainActivity.MyInterFaceGames{
+            override fun methodMyInterFaceGames() {
+                adapterList!!.notifyDataSetChanged()
+
+                progressBar.visibility = View.GONE
+            }
+        })
+
+        btSetRangeDate.setOnClickListener { // кнопка выбора/установка диапазона дат для получения новых данных
             myAlertDialogMain()
         }
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        // первый слушатель для получения первого верхнего элемента для повторного использования при
+            // смене ориентации
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
 
-                lastVisibleItemPositions = staggeredGridLayoutManager!!.findFirstVisibleItemPositions(null)
-
-                (context as MainActivity).lastVisibleItemPositions = getMaxPosition(lastVisibleItemPositions!!)
-
-////////////////////////////////////////////////////
-//                (context as MainActivity).totalCountItem = staggeredGridLayoutManager?.itemCount!!
-//                (context as MainActivity).lastVisibleItemPositions = staggeredGridLayoutManager?.findLastVisibleItemPositions()!!
-//
-////////////////////////////////////////////////////
+                lastVisibleItemArrayPositions1 = staggeredGridLayoutManager!!.findFirstVisibleItemPositions(null)
+                (context as MainActivity).lastVisibleItemPosition1 = getMaxPosition(lastVisibleItemArrayPositions1!!)
             }
 
              fun getMaxPosition(positions: IntArray): Int {
                 return positions[0]
             }
         })
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-        // слушатель RecyclerView для получения последнего видимомого элемента, чтобы использовать при повороте
+        // второй слушатель RecyclerView реализации offset чтобы подгружать данные при скроле
         val mScrollListener: RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 // эта часть отвечает за срабатывание запроса на получение дополнительных данных для записи в hashMap
@@ -163,37 +146,30 @@ class FragmentList : Fragment() {
                 (context as MainActivity).totalCountItem = staggeredGridLayoutManager?.itemCount!!
 
                 // эта часть отвечет только за передачу последнего видимомо элемента
-                lastVisibleItemPositions2 = staggeredGridLayoutManager?.findLastVisibleItemPositions(null)
-                //Log.e("zzz","-lastVisibleItemPositions=" + lastVisibleItemPositions.length);
-
-                (context as MainActivity).lastVisibleItemPosit = getMaxPosition(lastVisibleItemPositions2!!)
-
-
-                Log.e("333", "-проверка totalCountItem-" + (context as MainActivity).totalCountItem +
-                        " (context as MainActivity).lastVisibleItemPosit-" +  (context as MainActivity).lastVisibleItemPosit)
-
-                // эта часть должна срабатывать при достижении прокрутки
-                // totalCountItem - общее, lastVisibleItem - последний видимый
-
-
-
+                lastVisibleItemArrayPositions2 = staggeredGridLayoutManager?.findLastVisibleItemPositions(null)
+                (context as MainActivity).lastVisibleItemPosition2 = getMaxPosition(lastVisibleItemArrayPositions2!!)
 
                 if ((context as MainActivity).flagLoading == false
-                    && ((context as MainActivity).totalCountItem - 5) ==  (context as MainActivity).lastVisibleItemPosit)
+                    && ((context as MainActivity).totalCountItem - 5) ==  (context as MainActivity).lastVisibleItemPosition2)
                 {
                     // тут я запускаю новый запрос даных на сервер с offset
                     val runnable = Runnable {
                         Log.e("333", "-зашел offset-")
                         (context as MainActivity).page = (context as MainActivity).page + 1// переменная для увеличения значения offset
 
-                        getData(dataFromString as String, dataToString as String, (context as MainActivity).page) /// + 20;
+                        val requestData = RequestData()
+                        requestData.getData(requireActivity(), dataFromString as String, dataToString as String,
+                            (context as MainActivity).page) /// + 20;
                     }
                     Handler(Looper.getMainLooper()).postDelayed(runnable, 100)
+
+                    (context as MainActivity?)?.runOnUiThread {
+                        progressBar.visibility = View.VISIBLE
+                    }
 
                     (context as MainActivity).flagLoading = true // и возвращаю flagLoading в исходное состояние
                 }
             }
-
 
             fun getMaxPosition(positions: IntArray): Int {
                 return positions[positions.size-1]
@@ -201,43 +177,6 @@ class FragmentList : Fragment() {
         }
         recyclerView.addOnScrollListener(mScrollListener)
 
-        /////////////////////////////////////////////////////////////////
-
-
-//        // слушатель RecyclerView для получения последнего видимомого элемента, чтобы использовать при повороте
-//        val mScrollListener: RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
-//            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-//                // эта часть отвечает за срабатывание запроса на получение дополнительных данных для записи в hashMap
-//                // totalCountItem переменная всегда равно размеру hashmap в который добавляется + 20
-//                (context as MainActivity).totalCountItem = gridLayoutManager?.itemCount!!
-//
-//                // эта часть отвечет только за передачу последнего видимомо элемента
-//                (context as MainActivity).lastVisibleItemPositions = gridLayoutManager?.findLastVisibleItemPosition()!!
-//                //Log.e("zzz","-lastVisibleItemPositions=" + lastVisibleItemPositions.length);
-//
-//                Log.e("333", "-проверка totalCountItem-" + (context as MainActivity).totalCountItem +
-//                        "-(context as MainActivity).lastVisibleItemPositions-" + (context as MainActivity).lastVisibleItemPositions)
-//
-//                // эта часть должна срабатывать при достижении прокрутки
-//                // totalCountItem - общее, lastVisibleItem - последний видимый
-//                if ((context as MainActivity).flagLoading == false
-//                    && ((context as MainActivity).totalCountItem - 5) == (context as MainActivity).lastVisibleItemPositions)
-//                {
-//                    // тут я запускаю новый запрос даных на сервер с offset
-//                    val runnable = Runnable {
-//                        Log.e("333", "-зашел offset-")
-//                        (context as MainActivity).page = (context as MainActivity).page + 1// переменная для увеличения значения offset
-//
-//                        getData(dataFromString as String, dataToString as String, (context as MainActivity).page!!) /// + 20;
-//                    }
-//                    Handler(Looper.getMainLooper()).postDelayed(runnable, 100)
-//
-//                    (context as MainActivity).flagLoading = true // и возвращаю flagLoading в исходное состояние
-//                }
-//            }
-//        }
-//        recyclerView.addOnScrollListener(mScrollListener)
-//
         val runnable = Runnable { // установка последнего элемента в главном потоке
             try {
                 requireActivity().runOnUiThread {
@@ -251,86 +190,6 @@ class FragmentList : Fragment() {
     }
 
 
-
-    fun getData(dataFrom: String, dataTo: String, page: Int) {
-
-        progressBar.visibility = View.VISIBLE
-
-// https://api.rawg.io/api/games?key=YOUR_API_KEY&dates=2019-09-01,2019-09-30&platforms=18,1,7
-        val asyncHttpClient = AsyncHttpClient()
-
-        val requestParams = RequestParams()
-        requestParams.put("key", "e0ecba986417447ebbaa87aad9d31458")
-        requestParams.put("dates", String.format(dataFrom + dataTo))
-        requestParams.put("page", page)
-        requestParams.put("platforms", "18,1,7")
-
-        asyncHttpClient.get("https://api.rawg.io/api/games", requestParams, object : TextHttpResponseHandler() {
-            override fun onSuccess(statusCode: Int, headers: Array<out Header>?, responseString: String?) {
-                Log.e("333", "-onSuccess-" + responseString)
-
-                try {
-                    val jsonObject = JSONObject(responseString)
-                    val jsonArray = jsonObject.getJSONArray("results")
-
-                    for (n in 0 until jsonArray.length()) {
-                        val nameGame = jsonObject.getJSONArray("results").getJSONObject(n).getString("name")//-----
-
-                        val arrayPlatforms: MutableList<String> = ArrayList() // массив для записи платформ у игры //------
-                        // по platforms считаю от 0 до ... платформы игры
-                        val platforms = jsonObject.getJSONArray("results").getJSONObject(n).getJSONArray("platforms")
-                        for (z in 0 until platforms.length()) {
-                            val platform = jsonObject.getJSONArray("results").getJSONObject(n).getJSONArray("platforms")
-                                .getJSONObject(z).getJSONObject("platform").getString("name")
-                            arrayPlatforms.add(z, platform)
-                        }
-
-                        val released = jsonObject.getJSONArray("results").getJSONObject(n).getString("released") //------
-                        val imgMain = jsonObject.getJSONArray("results").getJSONObject(n).getString("background_image") //------
-
-                        val rating = jsonObject.getJSONArray("results").getJSONObject(n).getString("rating") //------
-                        val ratingTop = jsonObject.getJSONArray("results").getJSONObject(n).getString("rating_top") //------
-
-                        val added = jsonObject.getJSONArray("results").getJSONObject(n).getString("added") //------
-                        val updated = jsonObject.getJSONArray("results").getJSONObject(n).getString("updated") //------
-
-                        val arrayListScreenShots: MutableList<String> = ArrayList()
-                        val screenshots = jsonObject.getJSONArray("results").getJSONObject(n).getJSONArray("short_screenshots")
-                        for (y in 0 until screenshots.length()) {
-                            val screenshot = jsonObject.getJSONArray("results").getJSONObject(n).getJSONArray("short_screenshots")
-                                .getJSONObject(y).getString("image")
-                            arrayListScreenShots.add(y, screenshot)
-                        }
-
-                        (activity as MainActivity).hashMap.set((activity as MainActivity).hashMap.size, ObjectList(nameGame, arrayPlatforms,  released, imgMain,
-                        rating, ratingTop, added, updated, arrayListScreenShots))
-
-                    }
-
-
-                    (context as MainActivity?)?.runOnUiThread {
-                        adapterList?.notifyDataSetChanged()
-
-                        progressBar.visibility = View.GONE
-                    }
-
-                    (context as MainActivity).flagLoading = false
-
-                }
-                catch (e: JSONException) {
-                    Log.e("333", "-try catch=" + e)
-                }
-
-            }
-
-            override fun onFailure(statusCode: Int, headers: Array<out Header>?, responseString: String?, throwable: Throwable?) {
-                Log.e("333", "-onFailure-" + responseString)
-
-            }
-        })
-
-    }
-
     fun myAlertDialogMain() {
         val dialog = Dialog(requireActivity())
         dialog.setContentView(R.layout.windows_alertdialog)
@@ -339,7 +198,6 @@ class FragmentList : Fragment() {
         dialog.show()
 
         tvDateFrom = dialog.findViewById(R.id.tvDateFrom)
-
         tvDateFrom.text = String.format(dataFromString!!).replace(",","")
 
         tvDateFrom.setOnClickListener {
@@ -364,9 +222,7 @@ class FragmentList : Fragment() {
             dataFromString = String.format("$i" + "-" + "0$i2" + "-" + "0$i3,")
         }
 
-
         tvDateTo = dialog.findViewById(R.id.tvDateTo)
-
         tvDateTo.text = String.format(dataToString!!)
 
         tvDateTo.setOnClickListener {
@@ -387,7 +243,6 @@ class FragmentList : Fragment() {
 
             // i - год, i2 - месяц(январь с нуля идет отсчет), i3 - день
             tvDateTo.text = String.format("$i" + "-" + "$i2" + "-" + "$i3")
-
             dataToString = String.format("$i" + "-" + "0$i2" + "-" + "0$i3")
         }
 
@@ -410,24 +265,25 @@ class FragmentList : Fragment() {
 
             if ((stringFrom2!! - stringTo!!) <= 0) {
                 (activity as MainActivity).hashMap.clear()
-                getData(dataFromString as String, dataToString as String, 1)
+
+                val requestData = RequestData()
+                requestData.getData(
+                    requireActivity(),
+                    dataFromString as String,
+                    dataToString as String,
+                    1
+                )
 
                 (context as MainActivity?)?.runOnUiThread {
                     progressBar.visibility = View.VISIBLE
                 }
 
             }else{
-
                 val toast = Toast.makeText(activity, "The first date must be less than the second date", Toast.LENGTH_LONG)
                 toast.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0, 0)
                 toast.show()
             }
-
-
-
         }
     }
-
-
 
 }

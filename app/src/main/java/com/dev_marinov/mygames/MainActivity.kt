@@ -19,12 +19,11 @@ import com.airbnb.lottie.LottieAnimationView
 
 class MainActivity : AppCompatActivity() {
 
-    var lastVisibleItem: Int? = null
     lateinit var hashMap: HashMap<Int, ObjectList>
 
     var totalCountItem: Int = 0
-    var lastVisibleItemPositions: Int = 0
-    var lastVisibleItemPosit: Int = 0
+    var lastVisibleItemPosition1: Int = 0
+    var lastVisibleItemPosition2: Int = 0
     var flagLoading: Boolean = true
     var page: Int = 1
     lateinit var btNo: Button
@@ -134,4 +133,20 @@ class MainActivity : AppCompatActivity() {
             finish()
         }
     }
+
+
+
+    companion object{
+        lateinit var myInterFaceGames: MyInterFaceGames
+    }
+
+    // интерфейс для работы с FragmentGames
+    interface MyInterFaceGames{
+        fun methodMyInterFaceGames()
+    }
+    fun setMyInterFaceGames(myInterFaceGames: MyInterFaceGames) {
+        MainActivity.myInterFaceGames = myInterFaceGames
+    }
+
+
 }

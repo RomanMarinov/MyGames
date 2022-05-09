@@ -36,7 +36,3 @@ class AdapterListDetail(var newArrayScreenShots: MutableList<String>?) : Recycle
     }
 
 }
-
-
-
-

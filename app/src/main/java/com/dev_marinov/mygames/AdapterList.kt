@@ -24,18 +24,19 @@ class AdapterList(var requireActivity: FragmentActivity, var hashMap: HashMap<In
         val objectList = hashMap[position]
 
         if (objectList != null) {
-                holder.tvNameGame.setText(objectList.nameGame)
-                holder.tvRealised.setText(objectList.released)
+                holder.tvNameGame.setText(objectList.nameGame) // установка названия игры
+                holder.tvRealised.setText(objectList.released) // установка даты релиза игры
 
-                Picasso.get()
+                Picasso.get()  // установка главной картинки игры
                     .load(objectList.imgMain)
-                    .resize(500, 300)
+                    .resize(500, 300) // обязательно свои размеры (т.к. оригинал большой)
                     //.placeholder(R.drawable.picture_not_available)
                     .centerCrop()
                     .into(holder.myimgMain) // -----> картинка
 
-        holder.cardView.setOnClickListener {
+        holder.cardView.setOnClickListener { // клик по элементу
 
+            // передача в след fragmentDetail данных элемента и переход во fragmentDetail
             val fragmentDetail= FragmentDetail()
             fragmentDetail.getDataDetail(
                 hashMap[position]!!.nameGame!!,
@@ -48,7 +49,6 @@ class AdapterList(var requireActivity: FragmentActivity, var hashMap: HashMap<In
                 hashMap[position]!!.arrayScreenShots!!
             )
 
-
             (requireActivity as MainActivity).supportFragmentManager
                 .beginTransaction()
                 .setCustomAnimations(
@@ -59,10 +59,7 @@ class AdapterList(var requireActivity: FragmentActivity, var hashMap: HashMap<In
                 .replace(R.id.llFragDetail, fragmentDetail, "llFragDetail")
                 .addToBackStack("llFragDetail")
                 .commit()
-
-
             }
-
         }
 
     }

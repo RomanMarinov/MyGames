@@ -8,7 +8,6 @@
     android:background="@drawable/gradient"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".FragmentDetail"
-
     >
 
     <androidx.core.widget.NestedScrollView
@@ -16,8 +15,6 @@
         android:layout_height="match_parent"
         android:layout_marginTop="40dp"
         >
-
-
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -33,7 +30,6 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:fontFamily="@font/goblin_one"
-            android:text="name"
             android:textColor="@color/white"
             android:textSize="40sp"
             android:layout_marginEnd="10dp"
@@ -44,9 +40,7 @@
             android:shadowRadius="2"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-
             />
-
 
         <LinearLayout
             android:id="@+id/llZero"
@@ -57,14 +51,13 @@
             app:layout_constraintLeft_toLeftOf="parent"
             >
 
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="20dp"
                 android:fontFamily="@font/archivo"
-                android:text="Added"
+                android:text="@string/Added"
                 android:textColor="@color/white" />
 
             <TextView
@@ -74,7 +67,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="20dp"
                 android:fontFamily="@font/krona_one"
-                android:text="tvAdded"
+                android:text="@string/tvAdded"
                 android:textColor="@color/white" />
 
         </LinearLayout>
@@ -95,7 +88,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Released"
+                android:text="@string/Released"
                 android:fontFamily="@font/archivo"
                 android:textColor="@color/white"
                 android:layout_marginStart="10dp"
@@ -105,7 +98,7 @@
                 android:id="@+id/tvReleased"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="newReleased"
+                android:text="@string/newReleased"
                 android:fontFamily="@font/krona_one"
                 android:textColor="@color/white"
                 android:layout_marginStart="10dp"
@@ -124,7 +117,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Updated"
+                android:text="@string/Updated"
                 android:fontFamily="@font/archivo"
                 android:textColor="@color/white"
                 android:layout_marginStart="10dp"
@@ -135,7 +128,7 @@
                 android:id="@+id/tvUpdated"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="newUpdated"
+                android:text="@string/newUpdated"
                 android:fontFamily="@font/krona_one"
                 android:textColor="@color/white"
                 android:layout_marginStart="10dp"
@@ -159,7 +152,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Rating"
+                android:text="@string/Rating"
                 android:fontFamily="@font/archivo"
                 android:textColor="@color/white"
                 android:layout_marginStart="10dp"
@@ -170,7 +163,7 @@
                 android:id="@+id/tvRating"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="tvRating"
+                android:text="@string/tvRating"
                 android:fontFamily="@font/krona_one"
                 android:textColor="@color/white"
                 android:layout_marginStart="10dp"
@@ -179,7 +172,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="RatingTop"
+                android:text="@string/RatingTop"
                 android:fontFamily="@font/archivo"
                 android:textColor="@color/white"
                 android:layout_marginStart="10dp"
@@ -189,7 +182,7 @@
                 android:id="@+id/tvRatingTop"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="tvRatingTop"
+                android:text="@string/tvRatingTop"
                 android:fontFamily="@font/krona_one"
                 android:textColor="@color/white"
                 android:layout_marginStart="10dp"
@@ -211,7 +204,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Platforms"
+            android:text="@string/Platforms"
             android:fontFamily="@font/archivo"
             android:textColor="@color/white"
             android:layout_marginStart="10dp"
@@ -220,7 +213,7 @@
             android:id="@+id/tvArrayPlatforms"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="tvArrayPlatforms"
+            android:text="@string/tvPlatforms"
             android:layout_marginEnd="10dp"
             android:fontFamily="@font/krona_one"
             android:textColor="@color/white"

@@ -23,7 +23,6 @@ class FragmentDetail : Fragment() {
     lateinit var tvRatingTop: TextView
     lateinit var tvAdded: TextView
     lateinit var tvUpdated: TextView
-
     lateinit var tvArrayPlatforms: TextView
 
     var newNameGame: String? = null
@@ -47,7 +46,6 @@ class FragmentDetail : Fragment() {
         tvRatingTop = view.findViewById(R.id.tvRatingTop)
         tvAdded = view.findViewById(R.id.tvAdded)
         tvUpdated = view.findViewById(R.id.tvUpdated)
-
         tvArrayPlatforms = view.findViewById(R.id.tvArrayPlatforms)
 
         tvName.text = newNameGame
@@ -55,8 +53,9 @@ class FragmentDetail : Fragment() {
         tvRating.text = newRating
         tvRatingTop.text = newRatingTop
         tvAdded.text = newAdded
-        tvUpdated.text = newUpdated?.substring(0, 10)
+        tvUpdated.text = newUpdated?.substring(0, 10) // урезать дату
 
+            // удаление из стрингов лишние символы для вывода пользователю
         val string3 = newArrayPlatforms.toString().replace("[","")
         val string4 = string3.toString().replace("]","")
         tvArrayPlatforms.text = string4.toString()
@@ -72,7 +71,7 @@ class FragmentDetail : Fragment() {
         return view;
     }
 
-
+    // метод установки данных во views
     fun getDataDetail(nameGame: String, // название игры
                       arrayPlatforms: MutableList<String>, // массив платформ
                       released: String, // дата релиза
@@ -82,7 +81,6 @@ class FragmentDetail : Fragment() {
                       updated: String, // обновление
                       arrayScreenShots: MutableList<String> // скриншоты
     ) { // жанры
-
         newNameGame = nameGame
         newArrayScreenShots = arrayScreenShots
         newArrayPlatforms = arrayPlatforms

@@ -4,5 +4,28 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
     <string name="set_button">set date range</string>
-    <string name="my_games">MyGames </string>
+    <string name="my_games">MyGames</string>
+
+    <string name="Added">Added</string>
+    <string name="Released">Released</string>
+    <string name="Updated">Updated</string>
+    <string name="Rating">Rating</string>
+    <string name="RatingTop">RatingTop</string>
+    <string name="Platforms">Platforms</string>
+
+    <string name="tvAdded">tvAdded</string>
+    <string name="newReleased">newReleased</string>
+    <string name="newUpdated">newUpdated</string>
+    <string name="tvRating">tvRating</string>
+    <string name="tvRatingTop">tvRatingTop</string>
+    <string name="tvPlatforms">tvArrayPlatforms</string>
+
+    <string name="toast_text">The first date must be less than the second date</string>
+
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="no">no</string>
+    <string name="yes">yes</string>
+    <string name="do_you_wish">Do you wish to exit ?</string>
+
 </resources>

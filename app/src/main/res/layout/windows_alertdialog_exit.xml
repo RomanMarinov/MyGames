@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:gravity="center"
-        android:text="Do you wish to exit ?"
+        android:text="@string/do_you_wish"
         android:textSize="15sp"
         android:textColor="@color/white"
         app:layout_constraintTop_toTopOf="parent"
@@ -38,7 +38,7 @@
             android:id="@+id/btNo"
             android:layout_width="100dp"
             android:layout_height="30dp"
-            android:text="No"
+            android:text="@string/no"
             android:elevation="5dp"
             android:layout_marginTop="3dp"
             android:layout_marginBottom="3dp"
@@ -55,7 +55,7 @@
             android:layout_marginStart="10dp"
             android:background="@drawable/background_message"
             android:elevation="5dp"
-            android:text="Yes" />
+            android:text="@string/yes" />
 
     </LinearLayout>
 

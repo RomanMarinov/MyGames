@@ -5,10 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/fiolet"
-
     >
-
-
 
         <LinearLayout
             android:id="@+id/llTextView"
@@ -84,7 +81,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="30dp"
                 android:layout_weight="1"
-                android:text="cancel"
+                android:text="@string/cancel"
                 android:elevation="5dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginStart="10dp"
@@ -98,14 +95,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="30dp"
                 android:layout_weight="1"
-
                 android:layout_marginTop="10dp"
                 android:layout_marginBottom="20dp"
                 android:layout_marginStart="5dp"
                 android:layout_marginEnd="10dp"
                 android:background="@drawable/background_message"
                 android:elevation="5dp"
-                android:text="ok" />
+                android:text="@string/ok" />
 
         </LinearLayout>
 

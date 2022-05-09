@@ -6,7 +6,6 @@ class ObjectList {
 
     var arrayPlatforms: MutableList<String>? = null
 
-
     var released: String? = null // дата выхода
     var imgMain: String? = null // главная картинка
     var rating: String? = null //рейтинг текущий
@@ -15,7 +14,6 @@ class ObjectList {
     var updated: String? = null // когда было обновление
 
     var arrayScreenShots: MutableList<String>? = null
-
 
     constructor(
         nameGame: String?,
