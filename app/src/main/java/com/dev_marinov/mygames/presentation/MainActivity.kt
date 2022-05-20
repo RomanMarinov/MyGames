@@ -1,4 +1,4 @@
-package com.dev_marinov.mygames
+package com.dev_marinov.mygames.presentation
 
 import android.app.Dialog
 import android.os.Build
@@ -13,29 +13,28 @@ import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.Button
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import com.airbnb.lottie.LottieAnimationView
+import com.dev_marinov.mygames.data.ObjectListGames
+import com.dev_marinov.mygames.R
+import com.dev_marinov.mygames.data.ObjectListDetail
 
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var hashMap: HashMap<Int, ObjectList>
-
-    var totalCountItem: Int = 0
-    var lastVisibleItemPosition1: Int = 0
-    var lastVisibleItemPosition2: Int = 0
-    var flagLoading: Boolean = true
-    var page: Int = 1
     lateinit var btNo: Button
     lateinit var btYes: Button
     var animationView: LottieAnimationView? = null // анимация на старте
 
+    var mySavedInstanceState: Bundle? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        hashMap = HashMap()
+        Log.e("333","=MainActivity=")
+
+        mySavedInstanceState = savedInstanceState
+
         setWindow() // сетинг для статус бара и для бара навигации
         hideSystemUI() // сетинг для фул скрин по соответствующему сдк
         supportActionBar?.hide() // скрыть экшенбар
@@ -53,17 +52,17 @@ class MainActivity : AppCompatActivity() {
        animationView?.cancelAnimation()
 
        val runnable2 = Runnable{ // задержка 2 сек перед переходом во FragmentList
-           val fragmentList = FragmentList()
-           val fragmentManager = supportFragmentManager
-           val fragmentTransaction = fragmentManager.beginTransaction()
-           fragmentTransaction.add(R.id.llFragList, fragmentList)
-           fragmentTransaction.commit()
+           if (mySavedInstanceState == null) {
+               val fragmentList = FragmentList()
+               val fragmentManager = supportFragmentManager
+               val fragmentTransaction = fragmentManager.beginTransaction()
+               fragmentTransaction.add(R.id.llFragList, fragmentList)
+               fragmentTransaction.commit()
+           }
+
        }
        Handler(Looper.getMainLooper()).postDelayed(runnable2, 2000)
-
    }
-
-
 
     fun setWindow() {
         val window = window
@@ -76,8 +75,6 @@ class MainActivity : AppCompatActivity() {
         window.navigationBarColor  = ContextCompat.getColor(this, android.R.color.black); // черный бар навигации
     }
 
-
-
     private fun hideSystemUI() {
         // если сдк устройства больше или равно сдк приложения
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -89,25 +86,19 @@ class MainActivity : AppCompatActivity() {
         } else { // иначе
             @Suppress("DEPRECATION")
             window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    //or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    //or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    // Hide the nav bar and status bar
-                    //or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    //or View.SYSTEM_UI_FLAG_FULLSCREEN
-                    )
+                //or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                //or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                // Hide the nav bar and status bar
+                //or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                //or View.SYSTEM_UI_FLAG_FULLSCREEN
+            )
         }
     }
-
-
-
-
-
 
     override fun onBackPressed() {
         // как только будет ноль (последний экран) выполниться else
         if (supportFragmentManager.backStackEntryCount > 0) {
-
             super.onBackPressed()
         } else {
             supportFragmentManager.popBackStack() // удаление фрагментов из транзакции
@@ -138,6 +129,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object{
         lateinit var myInterFaceGames: MyInterFaceGames
+        lateinit var myInterFaceDetail: MyInterFaceDetail
     }
 
     // интерфейс для работы с FragmentGames
@@ -145,8 +137,15 @@ class MainActivity : AppCompatActivity() {
         fun methodMyInterFaceGames()
     }
     fun setMyInterFaceGames(myInterFaceGames: MyInterFaceGames) {
-        MainActivity.myInterFaceGames = myInterFaceGames
+        Companion.myInterFaceGames = myInterFaceGames
     }
 
+    // интерфейс для работы с деталями
+    interface MyInterFaceDetail{
+        fun methodMyInterFaceDetail(hashMapDetail: HashMap<Int, ObjectListDetail>)
+    }
+    fun setMyInterFaceDetail(myInterFaceDetail: MyInterFaceDetail) {
+        Companion.myInterFaceDetail = myInterFaceDetail
+    }
 
 }

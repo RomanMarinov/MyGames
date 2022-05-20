@@ -1,8 +1,9 @@
-package com.dev_marinov.mygames
+package com.dev_marinov.mygames.model
 
 import android.util.Log
-import android.view.View
-import androidx.fragment.app.FragmentActivity
+import com.dev_marinov.mygames.data.ObjectListGames
+import com.dev_marinov.mygames.presentation.MainActivity
+import com.dev_marinov.mygames.presentation.ViewModelFlagLoading
 import com.loopj.android.http.AsyncHttpClient
 import com.loopj.android.http.RequestParams
 import com.loopj.android.http.TextHttpResponseHandler
@@ -10,10 +11,17 @@ import cz.msebera.android.httpclient.Header
 import org.json.JSONException
 import org.json.JSONObject
 
-class RequestData {
+object RequestData {
+
+    var hashMap: HashMap<Int, ObjectListGames> = HashMap()
 
     // метод получения данных
-    fun getData(fragmentActivity: FragmentActivity, dataFrom: String, dataTo: String, page: Int) {
+    fun getData(
+        dataFrom: String,
+        dataTo: String,
+        page: Int,
+        viewModelFlagLoading: ViewModelFlagLoading
+    ) {
 
 // https://api.rawg.io/api/games?key=YOUR_API_KEY&dates=2019-09-01,2019-09-30&platforms=18,1,7
         val asyncHttpClient = AsyncHttpClient()
@@ -61,15 +69,25 @@ class RequestData {
                             arrayListScreenShots.add(y, screenshot)
                         }
 
-                        (fragmentActivity as MainActivity).hashMap.set((fragmentActivity as MainActivity).hashMap.size, ObjectList(nameGame, arrayPlatforms,  released, imgMain,
-                            rating, ratingTop, added, updated, arrayListScreenShots))
+                        hashMap.set(hashMap.size, ObjectListGames(
+                            nameGame,
+                            arrayPlatforms as ArrayList<String>,
+                            released,
+                            imgMain,
+                            rating,
+                            ratingTop,
+                            added,
+                            updated,
+                            arrayListScreenShots as ArrayList<String>
+                        )
+                        )
 
                     }
 
                     // интрерфейс срабатывает когда массив наполнился
                     MainActivity.myInterFaceGames.methodMyInterFaceGames()
 
-                    (fragmentActivity as MainActivity).flagLoading = false
+                    viewModelFlagLoading.flagLoading = false
                 }
                 catch (e: JSONException) {
                     Log.e("333", "-try catch=" + e)
@@ -81,5 +99,5 @@ class RequestData {
             }
         })
     }
-
+    fun getHashMapGames() = hashMap
 }

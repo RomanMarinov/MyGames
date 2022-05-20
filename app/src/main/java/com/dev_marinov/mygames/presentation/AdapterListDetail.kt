@@ -1,23 +1,22 @@
-package com.dev_marinov.mygames
+package com.dev_marinov.mygames.presentation
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.TextView
-import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.RecyclerView
+import com.dev_marinov.mygames.R
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
 
 class AdapterListDetail(var newArrayScreenShots: MutableList<String>?) : RecyclerView.Adapter<AdapterListDetail.ViewHolder>(){
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AdapterListDetail.ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view: View = LayoutInflater.from(parent.context).inflate(R.layout.rv_list_detail, parent, false)
         return ViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: AdapterListDetail.ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
         Picasso.get()
             .load(newArrayScreenShots!![position].toString()).memoryPolicy(MemoryPolicy.NO_CACHE)
