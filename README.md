@@ -3,10 +3,17 @@
 ## Описание 
 Андроид приложение позволяет получить данные игр которые выходили на pc и консолях.
 Получать краткую информацию о них.
-Реализовано animation fragment, поворот экрана, lottie anim, память recyclerView, подгрузка данных offset, а так же возможность выбрать за какой период показать данные.
 
 ## Работа с кодом 
 Клиентская часть: android studio kotlin. Запрос api.
+
+- viewModel,<br/>
+- mvvm, <br/>
+- animation start,<br/>
+- animation fragment,<br/>
+- recyclerViews,<br/>
+- alertDialog,<br/>
+- asyncHttpClient<br/>
 
 ## Скрины экрана 
 
