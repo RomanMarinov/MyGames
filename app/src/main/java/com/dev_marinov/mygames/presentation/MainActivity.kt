@@ -122,18 +122,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-
-    companion object{
-        lateinit var myInterFaceGames: MyInterFaceGames
-    }
-
-    // интерфейс для работы с FragmentGames
-    interface MyInterFaceGames{
-        fun methodMyInterFaceGames()
-    }
-    fun setMyInterFaceGames(myInterFaceGames: MyInterFaceGames) {
-        Companion.myInterFaceGames = myInterFaceGames
-    }
-
 }

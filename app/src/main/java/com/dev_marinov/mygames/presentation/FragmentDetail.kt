@@ -15,7 +15,6 @@ import com.dev_marinov.mygames.R
 import com.dev_marinov.mygames.data.ObjectListDetail
 import kotlin.collections.HashMap
 
-
 class FragmentDetail : Fragment() {
 
     lateinit var model: SharedViewModel
@@ -58,7 +57,6 @@ class FragmentDetail : Fragment() {
         return view;
     }
 
-
     fun setDetail(hashMap: HashMap<Int, ObjectListDetail>) {
             viewModelDetail.nameGame = hashMap[0]!!.nameGame
             viewModelDetail.arrayPlatforms = hashMap[0]!!.arrayPlatforms
@@ -88,9 +86,6 @@ class FragmentDetail : Fragment() {
 
             adapterListDetail = AdapterListDetail(viewModelDetail.arrayScreenShots)
             recyclerViewDetail.adapter = adapterListDetail
-
-
-
     }
 
 }

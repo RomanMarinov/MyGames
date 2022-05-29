@@ -87,8 +87,6 @@ class FragmentList : Fragment() {
             myRecyclerLayoutManagerAdapter(view, 2)
         }
 
-
-
         return view
     }
 
@@ -111,11 +109,10 @@ class FragmentList : Fragment() {
         recyclerView.setHasFixedSize(false)
 
         staggeredGridLayoutManager = StaggeredGridLayoutManager(column, StaggeredGridLayoutManager.VERTICAL)
-        recyclerView.setLayoutManager(staggeredGridLayoutManager)
+        recyclerView.layoutManager = staggeredGridLayoutManager
 
         adapterList = AdapterList()
         recyclerView.adapter = adapterList
-
 
         // при первой загрузке приложения, если массив с играми пустой, то запустить viewmodel
         // который вызовет сетевой метод запроса данных об играх
@@ -123,10 +120,6 @@ class FragmentList : Fragment() {
             // даты по умолчанию при первой загрузке
             viewModelFromAndToString.dataFromString = String.format("2019-09-01,")
             viewModelFromAndToString.dataToString = String.format("2019-09-30")
-
-//            // говорим viewmodel чтобы запросить данные по сети
-//            viewModelListGames.setParams(viewModelFromAndToString.dataFromString as String,
-//                viewModelFromAndToString.dataToString as String, 1, viewModelFlagLoading)
 
             (context as MainActivity?)?.runOnUiThread { // в главном потоке прогрессбар
                 progressBar.visibility = View.VISIBLE
@@ -155,12 +148,7 @@ class FragmentList : Fragment() {
 
         })
         viewModelListGames.makeApicall(apiKey, viewModelFromAndToString.dataFromString as String,
-            viewModelFromAndToString.dataToString as String, 1, viewModelFlagLoading)
-
-
-
-
-
+            viewModelFromAndToString.dataToString as String, viewModelPage.page, viewModelFlagLoading)
 
         adapterList!!.setOnItemClickListener(object : AdapterList.onItemClickListener {
             override fun onItemClick(position: Int) {
@@ -170,26 +158,6 @@ class FragmentList : Fragment() {
 
             }
         })
-
-//        // наблюдатель об изменениях в массиве, чтобы передать его в адаптер и обновить его
-//        viewModelListGames.getHashMapGames().observe(requireActivity(), androidx.lifecycle.Observer {
-//            it.let { adapterList!!.refreshListGames(it) } // it - обновленный список
-//        })
-
-//        viewModelListGames.getHashMapGames().observe(requireActivity(), object :Observer<ObjectListGames> {
-//            override fun onChanged(t: ObjectListGames?) {
-//                adapterList!!.setUpdateData(t!!.items)
-//            }
-//        })
-
-//        // метод интерфейса сработает когда мы получим данные от сети обновить его еще раз
-//        (context as MainActivity).setMyInterFaceGames(object : MainActivity.MyInterFaceGames {
-//            override fun methodMyInterFaceGames() {
-//                adapterList!!.notifyDataSetChanged()
-//
-//                progressBar.visibility = View.GONE
-//            }
-//        })
 
         btSetRangeDate.setOnClickListener { // кнопка выбора/установка диапазона дат для получения новых данных
             myAlertDialogMain()
@@ -239,7 +207,6 @@ class FragmentList : Fragment() {
         recyclerView.addOnScrollListener(mScrollListener)
     }
 
-
     fun getClickPosition(position: Int) {
 
         val myHashMapDetail: HashMap<Int, ObjectListDetail> = HashMap()
@@ -253,7 +220,6 @@ class FragmentList : Fragment() {
             viewModelListGames.getHashMapGames().value!![position]!!.updated!!,
             viewModelListGames.getHashMapGames().value!![position]!!.short_screenshots,
             viewModelListGames.getHashMapGames().value!![position]!!.platforms as MutableList<Platforms>
-
         )
 
         val hashMapGamesDetail: MutableLiveData<HashMap<Int, ObjectListDetail>> = MutableLiveData()
@@ -275,7 +241,6 @@ class FragmentList : Fragment() {
             .replace(R.id.llFragDetail, fragmentDetail, "llFragDetail")
             .addToBackStack("llFragDetail")
             .commit()
-
    }
 
     fun myAlertDialogMain() { // установка дат
