@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id'kotlin-kapt'
 }
 
 android {
@@ -50,4 +51,8 @@ dependencies {
     implementation 'com.loopj.android:android-async-http:1.4.11' // библиотека для http запросов, при подклччению к сайту
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation "androidx.recyclerview:recyclerview:1.2.1"
+
+    implementation 'com.google.dagger:dagger:2.42'
+    kapt 'com.google.dagger:dagger-compiler:2.42'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
 }

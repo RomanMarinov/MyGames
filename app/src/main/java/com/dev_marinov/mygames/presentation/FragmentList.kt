@@ -20,11 +20,14 @@ import java.util.*
 import android.view.Gravity
 import android.widget.ProgressBar
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.dev_marinov.mygames.R
+import com.dev_marinov.mygames.data.Games
 import com.dev_marinov.mygames.data.ObjectListDetail
-import com.dev_marinov.mygames.model.RequestData
+import com.dev_marinov.mygames.data.Platforms
+
 import kotlin.collections.HashMap
 
 
@@ -39,7 +42,7 @@ class FragmentList : Fragment() {
     lateinit var viewModelFromAndToString: ViewModelFromAndToString
 
 
-    // api =e0ecba986417447ebbaa87aad9d31458
+    val apiKey = "e0ecba986417447ebbaa87aad9d31458"
     lateinit var recyclerView: RecyclerView
     var adapterList: AdapterList? = null // адаптер для главного списка
     var myViewGroup: ViewGroup? = null // контейнер для перезаписи макета при смене конфигурации
@@ -84,23 +87,7 @@ class FragmentList : Fragment() {
             myRecyclerLayoutManagerAdapter(view, 2)
         }
 
-        // при первой загрузке приложения, если массив с играми пустой, то запустить viewmodel
-        // который вызовет сетевой метод запроса данных об играх
-        if (viewModelListGames.getHashMapGames().value!!.size == 0) {
-            // даты по умолчанию при первой загрузке
-            viewModelFromAndToString.dataFromString = String.format("2019-09-01,")
-            viewModelFromAndToString.dataToString = String.format("2019-09-30")
 
-            // говорим viewmodel чтобы запросить данные по сети
-            viewModelListGames.setParams(viewModelFromAndToString.dataFromString as String,
-                viewModelFromAndToString.dataToString as String, 1, viewModelFlagLoading)
-
-            (context as MainActivity?)?.runOnUiThread { // в главном потоке прогрессбар
-                progressBar.visibility = View.VISIBLE
-            }
-        } else {
-            Log.e("333", "FragmentHome arrayList.size()  НЕ ПУСТОЙ=")
-        }
 
         return view
     }
@@ -129,6 +116,52 @@ class FragmentList : Fragment() {
         adapterList = AdapterList()
         recyclerView.adapter = adapterList
 
+
+        // при первой загрузке приложения, если массив с играми пустой, то запустить viewmodel
+        // который вызовет сетевой метод запроса данных об играх
+        if (viewModelListGames.getHashMapGames().value == null) {
+            // даты по умолчанию при первой загрузке
+            viewModelFromAndToString.dataFromString = String.format("2019-09-01,")
+            viewModelFromAndToString.dataToString = String.format("2019-09-30")
+
+//            // говорим viewmodel чтобы запросить данные по сети
+//            viewModelListGames.setParams(viewModelFromAndToString.dataFromString as String,
+//                viewModelFromAndToString.dataToString as String, 1, viewModelFlagLoading)
+
+            (context as MainActivity?)?.runOnUiThread { // в главном потоке прогрессбар
+                progressBar.visibility = View.VISIBLE
+            }
+        } else {
+            Log.e("333", "FragmentHome arrayList.size()  НЕ ПУСТОЙ=")
+        }
+
+
+        viewModelListGames.getHashMapGames().observe(requireActivity(), object :Observer<HashMap<Int,Games>>{
+            override fun onChanged(hashMap: HashMap<Int, Games>?) {
+
+                progressBar.visibility = View.GONE
+                viewModelFlagLoading.flagLoading = false
+
+                    Log.e("333","=t="+hashMap)
+                if(hashMap != null) {
+
+                    adapterList!!.setUpdateData(hashMap)
+                    adapterList!!.notifyDataSetChanged()
+                } else {
+                    Toast.makeText(requireContext(), "error hashMap == null", Toast.LENGTH_SHORT).show()
+
+                }
+            }
+
+        })
+        viewModelListGames.makeApicall(apiKey, viewModelFromAndToString.dataFromString as String,
+            viewModelFromAndToString.dataToString as String, 1, viewModelFlagLoading)
+
+
+
+
+
+
         adapterList!!.setOnItemClickListener(object : AdapterList.onItemClickListener {
             override fun onItemClick(position: Int) {
 
@@ -138,19 +171,25 @@ class FragmentList : Fragment() {
             }
         })
 
-        // наблюдатель об изменениях в массиве, чтобы передать его в адаптер и обновить его
-        viewModelListGames.getHashMapGames().observe(requireActivity(), androidx.lifecycle.Observer {
-            it.let { adapterList!!.refreshListGames(it) } // it - обновленный список
-        })
+//        // наблюдатель об изменениях в массиве, чтобы передать его в адаптер и обновить его
+//        viewModelListGames.getHashMapGames().observe(requireActivity(), androidx.lifecycle.Observer {
+//            it.let { adapterList!!.refreshListGames(it) } // it - обновленный список
+//        })
 
-        // метод интерфейса сработает когда мы получим данные от сети обновить его еще раз
-        (context as MainActivity).setMyInterFaceGames(object : MainActivity.MyInterFaceGames {
-            override fun methodMyInterFaceGames() {
-                adapterList!!.notifyDataSetChanged()
+//        viewModelListGames.getHashMapGames().observe(requireActivity(), object :Observer<ObjectListGames> {
+//            override fun onChanged(t: ObjectListGames?) {
+//                adapterList!!.setUpdateData(t!!.items)
+//            }
+//        })
 
-                progressBar.visibility = View.GONE
-            }
-        })
+//        // метод интерфейса сработает когда мы получим данные от сети обновить его еще раз
+//        (context as MainActivity).setMyInterFaceGames(object : MainActivity.MyInterFaceGames {
+//            override fun methodMyInterFaceGames() {
+//                adapterList!!.notifyDataSetChanged()
+//
+//                progressBar.visibility = View.GONE
+//            }
+//        })
 
         btSetRangeDate.setOnClickListener { // кнопка выбора/установка диапазона дат для получения новых данных
             myAlertDialogMain()
@@ -178,9 +217,10 @@ class FragmentList : Fragment() {
                         + "=viewModelFlagLoading=" + viewModelFlagLoading)
                         viewModelPage.page = viewModelPage.page + 1// переменная для увеличения значения offset
                         Log.e("333", "-зашел offset-")
-                        val requestData = RequestData
-                        requestData.getData(viewModelFromAndToString.dataFromString as String,
-                            viewModelFromAndToString.dataToString as String, viewModelPage.page, viewModelFlagLoading) /// + 20;
+
+                        viewModelListGames.makeApicall(apiKey, viewModelFromAndToString.dataFromString as String,
+                            viewModelFromAndToString.dataToString as String, viewModelPage.page, viewModelFlagLoading)
+
                     }
                     Handler(Looper.getMainLooper()).postDelayed(runnable, 100)
 
@@ -197,22 +237,23 @@ class FragmentList : Fragment() {
             }
         }
         recyclerView.addOnScrollListener(mScrollListener)
-
     }
 
 
     fun getClickPosition(position: Int) {
 
         val myHashMapDetail: HashMap<Int, ObjectListDetail> = HashMap()
+
         myHashMapDetail[0] = ObjectListDetail(
-            viewModelListGames.getHashMapGames().value!![position]!!.nameGame,
-            viewModelListGames.getHashMapGames().value!![position]!!.arrayPlatforms,
-            viewModelListGames.getHashMapGames().value!![position]!!.released,
-            viewModelListGames.getHashMapGames().value!![position]!!.rating,
-            viewModelListGames.getHashMapGames().value!![position]!!.ratingTop,
-            viewModelListGames.getHashMapGames().value!![position]!!.added,
-            viewModelListGames.getHashMapGames().value!![position]!!.updated,
-            viewModelListGames.getHashMapGames().value!![position]!!.arrayScreenShots
+            viewModelListGames.getHashMapGames().value!![position]!!.name!!,
+            viewModelListGames.getHashMapGames().value!![position]!!.released!!,
+            viewModelListGames.getHashMapGames().value!![position]!!.rating!!,
+            viewModelListGames.getHashMapGames().value!![position]!!.rating_top!!,
+            viewModelListGames.getHashMapGames().value!![position]!!.added!!,
+            viewModelListGames.getHashMapGames().value!![position]!!.updated!!,
+            viewModelListGames.getHashMapGames().value!![position]!!.short_screenshots,
+            viewModelListGames.getHashMapGames().value!![position]!!.platforms as MutableList<Platforms>
+
         )
 
         val hashMapGamesDetail: MutableLiveData<HashMap<Int, ObjectListDetail>> = MutableLiveData()
@@ -339,16 +380,8 @@ class FragmentList : Fragment() {
                 Log.e("333","=ПОСЛЕ stringFrom2="+ stringFrom2 + "=stringTo=" + stringTo)
                 Log.e("333","=dataFromString="+ viewModelFromAndToString.dataFromString + "=dataToString=" + viewModelFromAndToString.dataToString)
 
-                val requestData = RequestData
-                requestData.getData(viewModelFromAndToString.dataFromString as String, viewModelFromAndToString.dataToString as String, 1, viewModelFlagLoading)
-
-                // говорим viewmodel чтобы запросить данные по сети
-                viewModelListGames.setParams(
-                    viewModelFromAndToString.dataFromString as String,
-                    viewModelFromAndToString.dataToString as String,
-                    1,
-                    viewModelFlagLoading
-                )
+                viewModelListGames.makeApicall(apiKey, viewModelFromAndToString.dataFromString as String,
+                    viewModelFromAndToString.dataToString as String, 1, viewModelFlagLoading)
 
                 (context as MainActivity?)?.runOnUiThread {
                     progressBar.visibility = View.VISIBLE

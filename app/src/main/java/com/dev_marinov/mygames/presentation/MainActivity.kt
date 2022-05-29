@@ -14,9 +14,7 @@ import android.view.WindowManager
 import android.widget.Button
 import androidx.core.content.ContextCompat
 import com.airbnb.lottie.LottieAnimationView
-import com.dev_marinov.mygames.data.ObjectListGames
 import com.dev_marinov.mygames.R
-import com.dev_marinov.mygames.data.ObjectListDetail
 
 
 class MainActivity : AppCompatActivity() {
@@ -59,7 +57,6 @@ class MainActivity : AppCompatActivity() {
                fragmentTransaction.add(R.id.llFragList, fragmentList)
                fragmentTransaction.commit()
            }
-
        }
        Handler(Looper.getMainLooper()).postDelayed(runnable2, 2000)
    }
@@ -129,7 +126,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object{
         lateinit var myInterFaceGames: MyInterFaceGames
-        lateinit var myInterFaceDetail: MyInterFaceDetail
     }
 
     // интерфейс для работы с FragmentGames
@@ -138,14 +134,6 @@ class MainActivity : AppCompatActivity() {
     }
     fun setMyInterFaceGames(myInterFaceGames: MyInterFaceGames) {
         Companion.myInterFaceGames = myInterFaceGames
-    }
-
-    // интерфейс для работы с деталями
-    interface MyInterFaceDetail{
-        fun methodMyInterFaceDetail(hashMapDetail: HashMap<Int, ObjectListDetail>)
-    }
-    fun setMyInterFaceDetail(myInterFaceDetail: MyInterFaceDetail) {
-        Companion.myInterFaceDetail = myInterFaceDetail
     }
 
 }

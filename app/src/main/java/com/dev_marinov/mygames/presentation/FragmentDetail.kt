@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dev_marinov.mygames.R
 import com.dev_marinov.mygames.data.ObjectListDetail
+import kotlin.collections.HashMap
 
 
 class FragmentDetail : Fragment() {
@@ -51,14 +52,14 @@ class FragmentDetail : Fragment() {
 
         model = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
         model.message.observe(viewLifecycleOwner, Observer {
-            setDetail(it, view)
+            setDetail(it)
         })
 
         return view;
     }
 
 
-    fun setDetail(hashMap: HashMap<Int, ObjectListDetail>, view: View) {
+    fun setDetail(hashMap: HashMap<Int, ObjectListDetail>) {
             viewModelDetail.nameGame = hashMap[0]!!.nameGame
             viewModelDetail.arrayPlatforms = hashMap[0]!!.arrayPlatforms
             viewModelDetail.released = hashMap[0]!!.released
@@ -73,12 +74,12 @@ class FragmentDetail : Fragment() {
             tvRating.text = viewModelDetail.rating
             tvRatingTop.text = viewModelDetail.ratingTop
             tvAdded.text = viewModelDetail.added
-            //tvUpdated.text = viewModelDetail.updated.substring(0, 10) // урезать дату
+            tvUpdated.text = viewModelDetail.updated.substring(0, 10) // урезать дату
 
-            // удаление из стрингов лишние символы для вывода пользователю
-            val string3 = viewModelDetail.arrayPlatforms.toString().replace("[","")
-            val string4 = string3.toString().replace("]","")
-            tvArrayPlatforms.text = string4.toString()
+            // установка названий платфом через перебор arrayPlatforms
+            for (item in viewModelDetail.arrayPlatforms.indices) {
+                 tvArrayPlatforms.text = (tvArrayPlatforms.text.toString() + (viewModelDetail.arrayPlatforms[item].platform.name.toString()) + ", ")
+            }
 
             recyclerViewDetail = requireView().findViewById(R.id.recyclerViewDetail)
 
@@ -87,6 +88,9 @@ class FragmentDetail : Fragment() {
 
             adapterListDetail = AdapterListDetail(viewModelDetail.arrayScreenShots)
             recyclerViewDetail.adapter = adapterListDetail
+
+
+
     }
 
 }

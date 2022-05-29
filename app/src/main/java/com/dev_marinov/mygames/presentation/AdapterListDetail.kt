@@ -6,10 +6,11 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.dev_marinov.mygames.R
+import com.dev_marinov.mygames.data.Screenshots
 import com.squareup.picasso.MemoryPolicy
 import com.squareup.picasso.Picasso
 
-class AdapterListDetail(var newArrayScreenShots: MutableList<String>?) : RecyclerView.Adapter<AdapterListDetail.ViewHolder>(){
+class AdapterListDetail(var newArrayScreenShots: MutableList<Screenshots>) : RecyclerView.Adapter<AdapterListDetail.ViewHolder>(){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view: View = LayoutInflater.from(parent.context).inflate(R.layout.rv_list_detail, parent, false)
@@ -19,7 +20,7 @@ class AdapterListDetail(var newArrayScreenShots: MutableList<String>?) : Recycle
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
         Picasso.get()
-            .load(newArrayScreenShots!![position].toString()).memoryPolicy(MemoryPolicy.NO_CACHE)
+            .load(newArrayScreenShots[position].image).memoryPolicy(MemoryPolicy.NO_CACHE)
             .placeholder(R.drawable.picture_not_available)
             .resize(500, 300)
             .centerCrop()
