@@ -9,11 +9,12 @@
 
 - viewModel,<br/>
 - mvvm, <br/>
+- dagger2, <br/>
 - animation start,<br/>
 - animation fragment,<br/>
 - recyclerViews,<br/>
 - alertDialog,<br/>
-- asyncHttpClient<br/>
+- retrofit<br/>
 
 ## Скрины экрана 
 
