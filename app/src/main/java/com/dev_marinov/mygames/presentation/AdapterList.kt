@@ -39,12 +39,8 @@ class AdapterList : RecyclerView.Adapter<AdapterList.ViewHolder>(){
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-//        val objectList = hashMap[position]
-//
-//        if (objectList != null) {
-
-                holder.tvNameGame.text = hashMap[position]!!.name
-                holder.tvNameGame.text = hashMap[position]!!.released
+           holder.tvNameGame.text = hashMap[position]!!.name
+                holder.tvRealised.text = hashMap[position]!!.released
                 Picasso.get()  // установка главной картинки игры
                     .load(hashMap[position]!!.background_image)
                     .resize(500, 300) // обязательно свои размеры (т.к. оригинал большой)
@@ -52,24 +48,7 @@ class AdapterList : RecyclerView.Adapter<AdapterList.ViewHolder>(){
                     .centerCrop()
                     .into(holder.myimgMain) // -----> картинка
 
-
-//                holder.tvNameGame.text = hashMap[position].results.toString()
-//
-//                holder.tvNameGame.setText(listData!![position].name) // установка названия игры
-//                holder.tvRealised.setText(listData!![position].released) // установка даты релиза игры
-
-//                Picasso.get()  // установка главной картинки игры
-//                    .load(listData!![position].background_image)
-//                    .resize(500, 300) // обязательно свои размеры (т.к. оригинал большой)
-//                    //.placeholder(R.drawable.picture_not_available)
-//                    .centerCrop()
-//                    .into(holder.myimgMain) // -----> картинка
-  //      }
     }
-
-//    override fun getItemCount(): Int {
-//        return hashMap.size
-//    }
 
     override fun getItemCount() = if (hashMap == null) 0 else hashMap!!.size
 
