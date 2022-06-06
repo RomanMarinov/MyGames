@@ -1,28 +1,20 @@
 package com.dev_marinov.mygames.presentation
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.dev_marinov.mygames.data.Games
-import com.dev_marinov.mygames.R
-import com.dev_marinov.mygames.data.ObjectListGames
+import com.dev_marinov.mygames.databinding.RvListBinding
 import com.squareup.picasso.Picasso
 
 class AdapterList : RecyclerView.Adapter<AdapterList.ViewHolder>(){
 
     var hashMap: HashMap<Int, Games> = HashMap()
 
-//    private var listData: List<Games>? = null
-
     // метод для обновления списка из вне
     fun setUpdateData(hashMap: HashMap<Int, Games>) {
         this.hashMap = hashMap
     }
-
-
 
     lateinit var mListener: onItemClickListener
 
@@ -34,36 +26,33 @@ class AdapterList : RecyclerView.Adapter<AdapterList.ViewHolder>(){
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view: View = LayoutInflater.from(parent.context).inflate(R.layout.rv_list, parent, false)
-        return ViewHolder(view, mListener)
+        val inflater = LayoutInflater.from(parent.context)
+        val listItemBinding = RvListBinding.inflate(inflater,parent,false)
+        return ViewHolder(listItemBinding, mListener)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-           holder.tvNameGame.text = hashMap[position]!!.name
-                holder.tvRealised.text = hashMap[position]!!.released
-                Picasso.get()  // установка главной картинки игры
-                    .load(hashMap[position]!!.background_image)
-                    .resize(500, 300) // обязательно свои размеры (т.к. оригинал большой)
-                    //.placeholder(R.drawable.picture_not_available)
-                    .centerCrop()
-                    .into(holder.myimgMain) // -----> картинка
-
+            holder.bind(hashMap[position])
     }
 
-    override fun getItemCount() = if (hashMap == null) 0 else hashMap!!.size
+    override fun getItemCount() = hashMap.size
 
+    inner class ViewHolder (private val binding: RvListBinding, listener: onItemClickListener)
+        : RecyclerView.ViewHolder(binding.root) {
+        fun bind(games: Games?) {
+            binding.itemList = games
 
-//    //передаем данные и оповещаем адаптер о необходимости обновления списка
-//    fun refreshListGames(hashMap: HashMap<Int, ObjectListGames>) {
-//        this.hashMap = hashMap
-//        notifyDataSetChanged()
-//    }
+            Picasso.get()  // установка главной картинки игры
+                .load(games!!.background_image.toString())
+                .resize(500, 300) // обязательно свои размеры (т.к. оригинал большой)
+                //.placeholder(R.drawable.picture_not_available)
+                .centerCrop()
+                .into(binding.imgMain) // -----> картинка
 
-    class ViewHolder (itemView: View, listener: onItemClickListener) : RecyclerView.ViewHolder(itemView) {
-        val tvNameGame: TextView = itemView.findViewById(R.id.tvNameGame)
-        val tvRealised: TextView = itemView.findViewById(R.id.tvRealised)
-
-        val myimgMain: ImageView = itemView.findViewById(R.id.imgMain)
+            // Метод executePendingBindings используется, чтобы биндинг не откладывался,
+            // а выполнился как можно быстрее. Это критично в случае с RecyclerView.
+            binding.executePendingBindings() // обязательно
+        }
 
         init {
             itemView.setOnClickListener {

@@ -13,41 +13,54 @@ import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.Button
 import androidx.core.content.ContextCompat
+import androidx.databinding.DataBindingUtil
 import com.airbnb.lottie.LottieAnimationView
 import com.dev_marinov.mygames.R
+import com.dev_marinov.mygames.databinding.ActivityMainBinding
+import com.dev_marinov.mygames.databinding.WindowsAlertdialogExitBinding
+
+
+import android.view.LayoutInflater
+import androidx.lifecycle.ViewModelProvider
 
 
 class MainActivity : AppCompatActivity() {
 
-    lateinit var btNo: Button
-    lateinit var btYes: Button
-    var animationView: LottieAnimationView? = null // анимация на старте
+    private lateinit var bindingActivityMain: ActivityMainBinding
+    lateinit var viewModelStatusDialogExit: ViewModelStatusDialogExit
 
-    var mySavedInstanceState: Bundle? = null
+    private var mySavedInstanceState: Bundle? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
         Log.e("333","=MainActivity=")
+
+        bindingActivityMain = DataBindingUtil.setContentView(this, R.layout.activity_main)
+
+        viewModelStatusDialogExit = ViewModelProvider(this).get(ViewModelStatusDialogExit::class.java)
 
         mySavedInstanceState = savedInstanceState
 
         setWindow() // сетинг для статус бара и для бара навигации
         hideSystemUI() // сетинг для фул скрин по соответствующему сдк
         supportActionBar?.hide() // скрыть экшенбар
-        animationView = findViewById(R.id.animationView)
+
+        // при создании макета проверяем статус был ли перед созданием макета открыт диалог
+        // если да (true), значит запустим его снова
+        if (viewModelStatusDialogExit.status) {
+            myAlertDialog()
+        }
 
         setAnimAndTransaction()
     }
 
-   fun setAnimAndTransaction(){
+   private fun setAnimAndTransaction(){
 
        val runnable1 = Runnable{ // анимация шарики при старте
-           animationView?.playAnimation()
+           bindingActivityMain.animationView.playAnimation()
        }
        Handler(Looper.getMainLooper()).postDelayed(runnable1, 0)
-       animationView?.cancelAnimation()
+       bindingActivityMain.animationView.cancelAnimation()
 
        val runnable2 = Runnable{ // задержка 2 сек перед переходом во FragmentList
            if (mySavedInstanceState == null) {
@@ -61,7 +74,7 @@ class MainActivity : AppCompatActivity() {
        Handler(Looper.getMainLooper()).postDelayed(runnable2, 2000)
    }
 
-    fun setWindow() {
+    private fun setWindow() {
         val window = window
         // FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS Флаг, указывающий, что это Окно отвечает за отрисовку фона для системных полос.
         // Если установлено, системные панели отображаются с прозрачным фоном, а соответствующие области в этом окне заполняются
@@ -103,20 +116,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun myAlertDialog() {
-        val dialog = Dialog(this@MainActivity)
-        dialog.setContentView(R.layout.windows_alertdialog_exit)
-        dialog.setCancelable(false)
+    private fun myAlertDialog() {
+        val bindingAlertDialogExit: WindowsAlertdialogExitBinding = DataBindingUtil
+            .inflate(LayoutInflater.from(this), R.layout.windows_alertdialog_exit, null, false)
+
+        val dialog = Dialog(this)
+        dialog.setContentView(bindingAlertDialogExit.root)
+        dialog.setCancelable(true)
         dialog.show()
 
-        btNo = dialog.findViewById(R.id.btNo)
-        btYes = dialog.findViewById(R.id.btYes)
+            // костыль для повторного открытия диалога если перевернули экран
+        viewModelStatusDialogExit.status = true
+        dialog.setOnDismissListener {
+            viewModelStatusDialogExit.status = false
+        }
 
-        btNo.setOnClickListener {
+        bindingAlertDialogExit.tvTitle.text = resources.getString(R.string.do_you_wish)
+        bindingAlertDialogExit.btNo.text = resources.getString(R.string.no)
+        bindingAlertDialogExit.btYes.text = resources.getString(R.string.yes)
+
+        bindingAlertDialogExit.btNo.setOnClickListener {
             dialog.dismiss()
             dialog.cancel()
         }
-        btYes.setOnClickListener{
+        bindingAlertDialogExit.btYes.setOnClickListener{
             dialog.dismiss()
             finish()
         }

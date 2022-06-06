@@ -13,12 +13,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import java.util.*
 import android.view.Gravity
-import android.widget.ProgressBar
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -27,11 +26,15 @@ import com.dev_marinov.mygames.R
 import com.dev_marinov.mygames.data.Games
 import com.dev_marinov.mygames.data.ObjectListDetail
 import com.dev_marinov.mygames.data.Platforms
+import com.dev_marinov.mygames.databinding.FragmentListBinding
+import com.dev_marinov.mygames.databinding.WindowsAlertdialogBinding
 
 import kotlin.collections.HashMap
-
+import android.view.WindowManager
 
 class FragmentList : Fragment() {
+
+    private lateinit var bindingFragmentList: FragmentListBinding
 
     lateinit var model: SharedViewModel
     lateinit var viewModelListGames: ViewModelListGames
@@ -40,21 +43,13 @@ class FragmentList : Fragment() {
     lateinit var viewModelFlagLoading: ViewModelFlagLoading
     lateinit var viewModelPage: ViewModelPage
     lateinit var viewModelFromAndToString: ViewModelFromAndToString
-
+    lateinit var viewModelStatusDialogDate: ViewModelStatusDialogDate
 
     val apiKey = "e0ecba986417447ebbaa87aad9d31458"
-    lateinit var recyclerView: RecyclerView
+
     var adapterList: AdapterList? = null // адаптер для главного списка
     var myViewGroup: ViewGroup? = null // контейнер для перезаписи макета при смене конфигурации
     var myLayoutInflater: LayoutInflater? = null // инфлятор
-    lateinit var btSetRangeDate: Button // кнопка выбора/установка диапазона дат для получения новых данных
-    lateinit var btCancel: Button // кнопка отмены диалога
-    lateinit var btOk: Button // кнопка подтверждения дат
-    lateinit var tvDateFrom: TextView // отображаются даты
-    lateinit var tvDateTo: TextView // отображаются даты
-    lateinit var progressBar: ProgressBar
-    //var dataFromString: String? = null // переменные просто для работы с датами
-    //var dataToString: String? = null // переменные просто для работы с датами
 
     var onDateSetListenerFrom: DatePickerDialog.OnDateSetListener? = null // слушатель даты слева
     var onDateSetListenerTo: DatePickerDialog.OnDateSetListener? = null // слушатель даты справа
@@ -67,54 +62,60 @@ class FragmentList : Fragment() {
         myViewGroup = container
         myLayoutInflater = inflater
 
-        return initInterface()
+        return initInterFace()
     }
 
-    fun initInterface () : View {
+    private fun initInterFace () : View {
         Log.e("333","=FragmentList=")
 
-        val view: View
         if (myViewGroup != null) { // при пересоздании макета, если он не пуст, он будет очищен
             myViewGroup?.removeAllViewsInLayout()
         }
         // получить int ориентации
         val orientation = requireActivity().resources.configuration.orientation
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-            view = layoutInflater.inflate(R.layout.fragment_list, myViewGroup, false)
-            myRecyclerLayoutManagerAdapter(view, 2)
+            bindingFragmentList = DataBindingUtil.inflate(myLayoutInflater!!, R.layout.fragment_list, myViewGroup, false)
         } else {
-            view = layoutInflater.inflate(R.layout.fragment_list, myViewGroup, false)
-            myRecyclerLayoutManagerAdapter(view, 2)
+            bindingFragmentList = DataBindingUtil.inflate(myLayoutInflater!!, R.layout.fragment_list, myViewGroup, false)
         }
+            myRecyclerLayoutManagerAdapter()
 
-        return view
+        return bindingFragmentList.root
     }
 
     // метод для установки recyclerview, GridLayoutManager и AdapterListHome
-    fun myRecyclerLayoutManagerAdapter(view: View, column: Int) {
+    private fun myRecyclerLayoutManagerAdapter() {
 
-        viewModelListGames = ViewModelProvider(this).get(ViewModelListGames::class.java)
-        viewModelTotalCountItem = ViewModelProvider(this).get(ViewModelTotalCountItem::class.java)
-        viewModelLastVisibleItemPosition2 = ViewModelProvider(this).get(ViewModelLastVisibleItemPosition2::class.java)
-        viewModelFlagLoading = ViewModelProvider(this).get(ViewModelFlagLoading::class.java)
-        viewModelPage = ViewModelProvider(this).get(ViewModelPage::class.java)
-        viewModelFromAndToString = ViewModelProvider(this).get(ViewModelFromAndToString::class.java)
+        viewModelListGames = ViewModelProvider(this)[ViewModelListGames::class.java]
+        viewModelTotalCountItem = ViewModelProvider(this)[ViewModelTotalCountItem::class.java]
+        viewModelLastVisibleItemPosition2 = ViewModelProvider(this)[ViewModelLastVisibleItemPosition2::class.java]
+        viewModelFlagLoading = ViewModelProvider(this)[ViewModelFlagLoading::class.java]
+        viewModelPage = ViewModelProvider(this)[ViewModelPage::class.java]
+        viewModelFromAndToString = ViewModelProvider(this)[ViewModelFromAndToString::class.java]
+        viewModelStatusDialogDate = ViewModelProvider(this)[ViewModelStatusDialogDate::class.java]
 
-        model = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
+        model = ViewModelProvider(requireActivity())[SharedViewModel::class.java]
 
-        recyclerView = view.findViewById(R.id.recyclerView)
-        btSetRangeDate = view.findViewById(R.id.btSetRangeDate)
-        progressBar = view.findViewById(R.id.progressBar)
+        bindingFragmentList.tvMyGames.text = resources.getString(R.string.my_games)
+        bindingFragmentList.btSetRangeDate.text = resources.getString(R.string.set_button)
 
-        recyclerView.setHasFixedSize(false)
-
-        staggeredGridLayoutManager = StaggeredGridLayoutManager(column, StaggeredGridLayoutManager.VERTICAL)
-        recyclerView.layoutManager = staggeredGridLayoutManager
+        // при создании макета проверяем статус был ли перед созданием макета открыт диалог
+            // если да (true), значит запустим его снова
+        if(viewModelStatusDialogDate.status) {
+           myAlertDialogMain()
+        }
 
         adapterList = AdapterList()
-        recyclerView.adapter = adapterList
 
-        // при первой загрузке приложения, если массив с играми пустой, то запустить viewmodel
+        staggeredGridLayoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+
+        bindingFragmentList.recyclerView.apply {
+            setHasFixedSize(false)
+            layoutManager = staggeredGridLayoutManager
+            adapter = adapterList
+        }
+
+        // при первой загрузке приложения, если массив с играми пустой, то запустить viewModel
         // который вызовет сетевой метод запроса данных об играх
         if (viewModelListGames.getHashMapGames().value == null) {
             // даты по умолчанию при первой загрузке
@@ -122,44 +123,48 @@ class FragmentList : Fragment() {
             viewModelFromAndToString.dataToString = String.format("2019-09-30")
 
             (context as MainActivity?)?.runOnUiThread { // в главном потоке прогрессбар
-                progressBar.visibility = View.VISIBLE
+                bindingFragmentList.progressBar.visibility = View.VISIBLE
             }
         } else {
             Log.e("333", "FragmentHome arrayList.size()  НЕ ПУСТОЙ=")
         }
 
-
         viewModelListGames.getHashMapGames().observe(requireActivity(), object :Observer<HashMap<Int,Games>>{
             override fun onChanged(hashMap: HashMap<Int, Games>?) {
 
-                progressBar.visibility = View.GONE
+                bindingFragmentList.progressBar.visibility = View.GONE
                 viewModelFlagLoading.flagLoading = false
 
-                    Log.e("333","=t="+hashMap)
                 if(hashMap != null) {
 
                     adapterList!!.setUpdateData(hashMap)
                     adapterList!!.notifyDataSetChanged()
                 } else {
                     Toast.makeText(requireContext(), "error hashMap == null", Toast.LENGTH_SHORT).show()
-
                 }
             }
 
         })
-        viewModelListGames.makeApicall(apiKey, viewModelFromAndToString.dataFromString as String,
-            viewModelFromAndToString.dataToString as String, viewModelPage.page, viewModelFlagLoading)
+
+        // сработает при первой загрузке когда массив с данными пустой
+        // проверка hashMapTemp временного массива на пустоту, чтобы при повороте экрана не вызвать
+        // сетевой запрос во viewModelListGames, чтобы не дублировать запись в массив
+        if (viewModelListGames.hashMapTemp.size == 0) {
+            viewModelListGames.makeApiCall(apiKey, viewModelFromAndToString.dataFromString as String,
+                viewModelFromAndToString.dataToString as String, viewModelPage.page, viewModelFlagLoading)
+
+        }
 
         adapterList!!.setOnItemClickListener(object : AdapterList.onItemClickListener {
             override fun onItemClick(position: Int) {
 
                 getClickPosition(position)
-            Log.e("333","-position=" +position )
+                Log.e("333","-position=" +position )
 
             }
         })
 
-        btSetRangeDate.setOnClickListener { // кнопка выбора/установка диапазона дат для получения новых данных
+        bindingFragmentList.btSetRangeDate.setOnClickListener { // кнопка выбора/установка диапазона дат для получения новых данных
             myAlertDialogMain()
         }
 
@@ -186,14 +191,14 @@ class FragmentList : Fragment() {
                         viewModelPage.page = viewModelPage.page + 1// переменная для увеличения значения offset
                         Log.e("333", "-зашел offset-")
 
-                        viewModelListGames.makeApicall(apiKey, viewModelFromAndToString.dataFromString as String,
+                        viewModelListGames.makeApiCall(apiKey, viewModelFromAndToString.dataFromString as String,
                             viewModelFromAndToString.dataToString as String, viewModelPage.page, viewModelFlagLoading)
 
                     }
                     Handler(Looper.getMainLooper()).postDelayed(runnable, 100)
 
                     (context as MainActivity?)?.runOnUiThread {
-                        progressBar.visibility = View.VISIBLE
+                        bindingFragmentList.progressBar.visibility = View.VISIBLE
                     }
 
                    viewModelFlagLoading.flagLoading = true // и возвращаю flagLoading в исходное состояние
@@ -204,7 +209,7 @@ class FragmentList : Fragment() {
                 return positions[positions.size-1]
             }
         }
-        recyclerView.addOnScrollListener(mScrollListener)
+        bindingFragmentList.recyclerView.addOnScrollListener(mScrollListener)
     }
 
     fun getClickPosition(position: Int) {
@@ -224,6 +229,7 @@ class FragmentList : Fragment() {
 
         val hashMapGamesDetail: MutableLiveData<HashMap<Int, ObjectListDetail>> = MutableLiveData()
 
+            // запись врменного массива myHashMapDetail в hashMapGamesDetail
         hashMapGamesDetail.value = myHashMapDetail
 
         val fragmentDetail = FragmentDetail()
@@ -243,18 +249,40 @@ class FragmentList : Fragment() {
             .commit()
    }
 
-    fun myAlertDialogMain() { // установка дат
+    private fun myAlertDialogMain() { // установка дат
+        val bindingAlertDialogDate: WindowsAlertdialogBinding = DataBindingUtil
+            .inflate(LayoutInflater.from(requireActivity()),
+                R.layout.windows_alertdialog, myViewGroup, false)
+
+        bindingAlertDialogDate.btCancel.text = resources.getString(R.string.cancel)
+        bindingAlertDialogDate.btOk.text = resources.getString(R.string.ok)
+
         val dialog = Dialog(requireActivity())
-        dialog.setContentView(R.layout.windows_alertdialog)
-
+        dialog.setContentView(bindingAlertDialogDate.root)
         dialog.setCancelable(true) // чтобы можно было просто кликнув полю сбросить окно
+
+        // установка ширины диалога, а то больше ничем не изменить ширину диалога
+        val lp = WindowManager.LayoutParams()
+        lp.copyFrom(dialog.window!!.attributes)
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT
+//        lp.height = WindowManager.LayoutParams.MATCH_PARENT
         dialog.show()
+        dialog.window!!.attributes = lp
 
-        tvDateFrom = dialog.findViewById(R.id.tvDateFrom)
-        tvDateFrom.text = String.format(viewModelFromAndToString.dataFromString).replace(",","")
+        // костыль для повторного отображения диалога при повороте экрана
+            viewModelStatusDialogDate.status = true
+        dialog.setOnDismissListener {
+            Log.e("333", "-dialog.setOnDismissListener=")
+            viewModelStatusDialogDate.status = false
+        }
 
-        tvDateFrom.setOnClickListener {
-        val calendar: Calendar = Calendar.getInstance()
+        // отображаем слева в textview например "2019-09-01," только без запятой, т.е. "2019-09-01"
+        bindingAlertDialogDate.tvDateFrom.text = String.format(viewModelFromAndToString.dataFromString)
+            .replace(",","")
+
+        // клик на textview слева
+        bindingAlertDialogDate.tvDateFrom.setOnClickListener {
+            val calendar: Calendar = Calendar.getInstance()
             val yearFrom = calendar.get(Calendar.YEAR)
             val monthFrom = calendar.get(Calendar.MONTH)
             val dayFrom = calendar.get(Calendar.DAY_OF_MONTH)
@@ -266,27 +294,20 @@ class FragmentList : Fragment() {
             datePickerDialog.window?.setBackgroundDrawable(ColorDrawable(R.drawable.gradient))
             datePickerDialog.show()
         }
-
+            // запись слева когда мы покрутили календарь
         onDateSetListenerFrom = DatePickerDialog.OnDateSetListener { datePicker, i, i2, i3 ->
-            Log.e("333", "-datePicker=" + datePicker + "-i-" + i + "-i2-" + i2 + "-i3-" + i3)
+            Log.e("333", "-datePicker="+ "-i-" + i + "-i2-" + i2 + "-i3-" + i3)
 
-            // i - год, i2 - месяц(январь с нуля идет отсчет), i3 - день
-            tvDateFrom.text = String.format("$i" + "-" + "$i2" + "-" + "$i3")
-            if (i2 !in 10..12) {
-                viewModelFromAndToString.dataFromString = String.format("$i" + "-" + "0$i2" + "-" + "$i3,")
-            }
-            if (i3 !in 10..31) {
-                viewModelFromAndToString.dataFromString = String.format("$i" + "-" + "$i2" + "-" + "0$i3,")
-            }
-            if (i2 in 10..12 && i3 !in 10..31) {
-                viewModelFromAndToString.dataFromString = String.format("$i" + "-" + "0$i2" + "-" + "0$i3,")
-            }
+            // получаем из метода getDate строку с переработанной датой под сетевой запрос апи
+            viewModelFromAndToString.dataFromString = getDate(i, i2, i3) + ","
+            // получаем из метода getDate строку с переработанной датой для отображения в tvDateFrom
+            bindingAlertDialogDate.tvDateFrom.text = getDate(i, i2, i3)
         }
 
-        tvDateTo = dialog.findViewById(R.id.tvDateTo)
-        tvDateTo.text = String.format(viewModelFromAndToString.dataToString)
+            // установка даты для отображения в tvDateTo
+        bindingAlertDialogDate.tvDateTo.text = String.format(viewModelFromAndToString.dataToString)
 
-        tvDateTo.setOnClickListener {
+        bindingAlertDialogDate.tvDateTo.setOnClickListener {
             val calendar: Calendar = Calendar.getInstance()
             val yearFrom = calendar.get(Calendar.YEAR)
             val monthFrom = calendar.get(Calendar.MONTH)
@@ -302,54 +323,42 @@ class FragmentList : Fragment() {
         onDateSetListenerTo = DatePickerDialog.OnDateSetListener { datePicker, i, i2, i3 ->
             Log.e("333", "-datePicker=" + datePicker + "-i-" + i + "-i2-" + i2 + "-i3-" + i3)
 
-            // i - год, i2 - месяц(январь с нуля идет отсчет), i3 - день
-            tvDateTo.text = String.format("$i" + "-" + "$i2" + "-" + "$i3")
-            viewModelFromAndToString.dataToString = String.format("$i" + "-" + "$i2" + "-" + "$i3")
-            Log.e("333", "-проверка 1 dataToString=" + viewModelFromAndToString.dataToString)
-            if (i2 !in 10..12) {
-                viewModelFromAndToString.dataToString = String.format("$i" + "-" + "0$i2" + "-" + "$i3")
-                Log.e("333", "-проверка 2 dataToString=" + viewModelFromAndToString.dataToString)
-            }
-            if (i3 !in 10..31) {
-                viewModelFromAndToString.dataToString = String.format("$i" + "-" + "$i2" + "-" + "0$i3")
-                Log.e("333", "-проверка 3 dataToString=" + viewModelFromAndToString.dataToString)
-            }
-            if (i2 in 10..12 && i3 !in 10..31) {
-                viewModelFromAndToString.dataToString = String.format("$i" + "-" + "0$i2" + "-" + "0$i3")
-                Log.e("333", "-проверка 4 dataToString=" + viewModelFromAndToString.dataToString)
-            }
-            Log.e("333", "-проверка 5 dataToString=" + viewModelFromAndToString.dataToString)
+            // получаем из метода getDate строку с переработанной датой под сетевой запрос апи
+            viewModelFromAndToString.dataToString = getDate(i, i2, i3)
+            // получаем из метода getDate строку с переработанной датой для отображения в tvDateTo
+            bindingAlertDialogDate.tvDateTo.text = getDate(i, i2, i3)
         }
 
-
-        btCancel = dialog.findViewById(R.id.btCancel)
-        btOk = dialog.findViewById(R.id.btOk)
-
-        btCancel.setOnClickListener {
+        bindingAlertDialogDate.btCancel.setOnClickListener {
             dialog.dismiss()
             dialog.cancel()
         }
-        btOk.setOnClickListener{
+        bindingAlertDialogDate.btOk.setOnClickListener{
             dialog.dismiss()
 
-            // проверка на то, что пользовтель ввел первую дату меньше чем вторую
+            // удаляем из даты слева тире и запятую
             val stringFrom1 = viewModelFromAndToString.dataFromString.replace("-","")
             val stringFrom2 = stringFrom1.replace(",","").toIntOrNull()
-
+            // удаляем из даты справа тире
             val stringTo = viewModelFromAndToString.dataToString.replace("-","").toIntOrNull()
 
             Log.e("333","=ДО stringFrom2="+ stringFrom2 + "=stringTo=" + stringTo)
+            // проверка на то, что пользовтель ввел первую дату меньше чем вторую
             if ((stringFrom2!! - stringTo!!) <= 0) {
-                //(activity as MainActivity).hashMap.clear()
+
                     viewModelListGames.getHashMapGames().value!!.clear()
+                    viewModelListGames.hashMapTemp.clear()
+
                 Log.e("333","=ПОСЛЕ stringFrom2="+ stringFrom2 + "=stringTo=" + stringTo)
                 Log.e("333","=dataFromString="+ viewModelFromAndToString.dataFromString + "=dataToString=" + viewModelFromAndToString.dataToString)
 
-                viewModelListGames.makeApicall(apiKey, viewModelFromAndToString.dataFromString as String,
+                // https://api.rawg.io/api/games?key=YOUR_API_KEY&dates=2019-09-01,2019-09-30&platforms=18,1,7
+                // вызов нового апи запроса в сеть для получения данных об играх
+                viewModelListGames.makeApiCall(apiKey, viewModelFromAndToString.dataFromString as String,
                     viewModelFromAndToString.dataToString as String, 1, viewModelFlagLoading)
 
                 (context as MainActivity?)?.runOnUiThread {
-                    progressBar.visibility = View.VISIBLE
+                    bindingFragmentList.progressBar.visibility = View.VISIBLE
                 }
 
             }else{
@@ -358,6 +367,23 @@ class FragmentList : Fragment() {
                 toast.show()
             }
         }
+    }
+
+    // функция переработки полученной даты календаря (где нет нулей, там поставил)
+    private fun getDate(i: Int, i2: Int, i3: Int): String {
+        // i - год, i2 - месяц(январь с нуля идет отсчет), i3 - день
+        val i2 = i2 + 1 // + 1
+
+        // если месяц не входит в диапазон от 10 до 12, а день входит от 10 до 31
+        if (i2 !in 10..12 && i3 in 10..31) return String.format("$i" + "-" + "0$i2" + "-" + "$i3")
+        // если месяц входит в диапазон от 10 до 12, а день не входит от 10 до 31
+        if (i2 in 10..12 && i3 !in 10..31) return String.format("$i" + "-" + "$i2" + "-" + "0$i3")
+        // если месяц входит в диапазон от 10 до 12, и день входит от 10 до 31
+        if (i2 in 10..12 && i3 in 10..31) return String.format("$i" + "-" + "$i2" + "-" + "$i3")
+        // если месяц не входит в диапазон от 10 до 12, и день не входит от 10 до 31
+        if (i2 !in 10..12 && i3 !in 10..31) return String.format("$i" + "-" + "0$i2" + "-" + "0$i3")
+
+        return ""
     }
 
 }

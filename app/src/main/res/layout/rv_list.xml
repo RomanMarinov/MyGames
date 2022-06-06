@@ -1,68 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/cardView"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    app:cardCornerRadius="10dp"
-    android:elevation="10dp"
-    android:layout_marginStart="2.5dp"
-    android:layout_marginEnd="2.5dp"
-    android:layout_marginBottom="5dp"
-    >
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <data>
+        <variable
+            name="itemList"
+            type="com.dev_marinov.mygames.data.Games" />
+    </data>
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        >
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="10dp"
+        android:elevation="10dp"
+        android:layout_marginStart="2.5dp"
+        android:layout_marginEnd="2.5dp"
+        android:layout_marginBottom="5dp">
 
-
-        <ImageView
-            android:id="@+id/imgMain"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:adjustViewBounds="true"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            />
-
-        <TextView
-            android:id="@+id/tvNameGame"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/dm_serif_display"
-            android:textColor="@color/white"
-            android:textSize="15sp"
-            android:shadowColor="@color/black"
-            android:shadowDx="3"
-            android:shadowDy="3"
-            android:shadowRadius="2"
-            android:layout_marginTop="8dp"
-            android:layout_marginStart="8dp"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            />
-
-        <TextView
-            android:id="@+id/tvRealised"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fontFamily="@font/dm_serif_display"
-            android:textColor="@color/white"
-            android:textSize="15sp"
-            android:shadowColor="@color/black"
-            android:shadowDx="3"
-            android:shadowDy="3"
-            android:shadowRadius="2"
-            android:layout_marginStart="8dp"
-            android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:layout_height="match_parent">
 
 
+            <ImageView
+                android:id="@+id/imgMain"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:adjustViewBounds="true"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent" />
 
-</androidx.cardview.widget.CardView>
+            <TextView
+                android:id="@+id/tvNameGame"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/dm_serif_display"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:shadowColor="@color/black"
+                android:shadowDx="3"
+                android:shadowDy="3"
+                android:text="@{itemList.name}"
+                android:shadowRadius="2"
+                android:layout_marginTop="8dp"
+                android:layout_marginStart="8dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent" />
+
+            <TextView
+                android:id="@+id/tvRealised"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fontFamily="@font/dm_serif_display"
+                android:textColor="@color/white"
+                android:textSize="15sp"
+                android:shadowColor="@color/black"
+                android:shadowDx="3"
+                android:shadowDy="3"
+                android:text="@{itemList.released}"
+                android:shadowRadius="2"
+                android:layout_marginStart="8dp"
+                android:layout_marginBottom="8dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    </androidx.cardview.widget.CardView>
+</layout>

@@ -7,85 +7,73 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.dev_marinov.mygames.DataBinderMapperImpl
 import com.dev_marinov.mygames.R
 import com.dev_marinov.mygames.data.ObjectListDetail
+import com.dev_marinov.mygames.databinding.FragmentDetailBinding
 import kotlin.collections.HashMap
 
 class FragmentDetail : Fragment() {
 
+    private lateinit var bindingFragmentDetail: FragmentDetailBinding
+
     lateinit var model: SharedViewModel
     lateinit var viewModelDetail: ViewModelDetail
 
-    lateinit var recyclerViewDetail: RecyclerView
     var adapterListDetail: AdapterListDetail? = null
     var linearLayoutManager: LinearLayoutManager? = null
 
-    lateinit var tvName: TextView
-    lateinit var tvReleased: TextView
-    lateinit var tvRating: TextView
-    lateinit var tvRatingTop: TextView
-    lateinit var tvAdded: TextView
-    lateinit var tvUpdated: TextView
-    lateinit var tvArrayPlatforms: TextView
-
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        val view: View
 
-        view = layoutInflater.inflate(R.layout.fragment_detail, container, false)
+        bindingFragmentDetail = DataBindingUtil.inflate(inflater, R.layout.fragment_detail, container,false)
 
-        Log.e("333","=зашел в FragmentDetail=")
+        viewModelDetail = ViewModelProvider(this)[ViewModelDetail::class.java]
 
-        viewModelDetail = ViewModelProvider(this).get(ViewModelDetail::class.java)
-
-        tvName = view.findViewById(R.id.tvName)
-        tvReleased = view.findViewById(R.id.tvReleased)
-        tvRating = view.findViewById(R.id.tvRating)
-        tvRatingTop = view.findViewById(R.id.tvRatingTop)
-        tvAdded = view.findViewById(R.id.tvAdded)
-        tvUpdated = view.findViewById(R.id.tvUpdated)
-        tvArrayPlatforms = view.findViewById(R.id.tvArrayPlatforms)
-
-        model = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
+        model = ViewModelProvider(requireActivity())[SharedViewModel::class.java]
         model.message.observe(viewLifecycleOwner, Observer {
             setDetail(it)
         })
 
-        return view;
+        return bindingFragmentDetail.root;
     }
 
-    fun setDetail(hashMap: HashMap<Int, ObjectListDetail>) {
-            viewModelDetail.nameGame = hashMap[0]!!.nameGame
-            viewModelDetail.arrayPlatforms = hashMap[0]!!.arrayPlatforms
-            viewModelDetail.released = hashMap[0]!!.released
-            viewModelDetail.rating = hashMap[0]!!.rating
-            viewModelDetail.ratingTop = hashMap[0]!!.ratingTop
-            viewModelDetail.added = hashMap[0]!!.added
-            viewModelDetail.updated = hashMap[0]!!.updated
-            viewModelDetail.arrayScreenShots = hashMap[0]!!.arrayScreenShots
+    private fun setDetail(hashMap: HashMap<Int, ObjectListDetail>) {
+        // записываем в новый viewModelDetail
+        viewModelDetail.nameGame = hashMap[0]!!.nameGame
+        viewModelDetail.arrayPlatforms = hashMap[0]!!.arrayPlatforms
+        viewModelDetail.released = hashMap[0]!!.released
+        viewModelDetail.rating = hashMap[0]!!.rating
+        viewModelDetail.ratingTop = hashMap[0]!!.ratingTop
+        viewModelDetail.added = hashMap[0]!!.added
+        viewModelDetail.updated = hashMap[0]!!.updated
+        viewModelDetail.arrayScreenShots = hashMap[0]!!.arrayScreenShots
 
-            tvName.text = viewModelDetail.nameGame
-            tvReleased.text = viewModelDetail.released
-            tvRating.text = viewModelDetail.rating
-            tvRatingTop.text = viewModelDetail.ratingTop
-            tvAdded.text = viewModelDetail.added
-            tvUpdated.text = viewModelDetail.updated.substring(0, 10) // урезать дату
+        bindingFragmentDetail.tvName.text = viewModelDetail.nameGame
+        bindingFragmentDetail.tvReleased.text = viewModelDetail.released
+        bindingFragmentDetail.tvRating.text = viewModelDetail.rating
+        bindingFragmentDetail.tvRatingTop.text = viewModelDetail.ratingTop
+        bindingFragmentDetail.tvAdded.text = viewModelDetail.added
+        bindingFragmentDetail.tvUpdated.text = viewModelDetail.updated.substring(0, 10) // урезать дату
 
-            // установка названий платфом через перебор arrayPlatforms
-            for (item in viewModelDetail.arrayPlatforms.indices) {
-                 tvArrayPlatforms.text = (tvArrayPlatforms.text.toString() + (viewModelDetail.arrayPlatforms[item].platform.name.toString()) + ", ")
-            }
+        // установка названий платфом через перебор arrayPlatforms
+        for (item in viewModelDetail.arrayPlatforms.indices) {
+            bindingFragmentDetail.tvArrayPlatforms.text = (bindingFragmentDetail.tvArrayPlatforms.text.toString()
+                    + (viewModelDetail.arrayPlatforms[item].platform.name.toString()) + ", ")
+        }
 
-            recyclerViewDetail = requireView().findViewById(R.id.recyclerViewDetail)
+        linearLayoutManager = LinearLayoutManager(requireActivity(), LinearLayoutManager.HORIZONTAL, false)
 
-            linearLayoutManager = LinearLayoutManager(requireActivity(), LinearLayoutManager.HORIZONTAL, false)
-            recyclerViewDetail.layoutManager = linearLayoutManager
+        adapterListDetail = AdapterListDetail(viewModelDetail.arrayScreenShots)
 
-            adapterListDetail = AdapterListDetail(viewModelDetail.arrayScreenShots)
-            recyclerViewDetail.adapter = adapterListDetail
+        bindingFragmentDetail.recyclerViewDetail.apply {
+            layoutManager = linearLayoutManager
+            adapter = adapterListDetail
+        }
     }
 
 }

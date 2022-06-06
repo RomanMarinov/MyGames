@@ -20,10 +20,4 @@ interface RetroServiceInterFace {
         @Query("platforms")platforms: String
     ): Call<ObjectListGames>
 
-
-//    fun prostoNazvanie(
-//        @Query("limit") limit: Int,
-//        @Query("offset") offset: Int
-//    ): Call<PokemonRequest?>?
-
 }

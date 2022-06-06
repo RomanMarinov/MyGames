@@ -2,8 +2,6 @@ package com.dev_marinov.mygames.model
 
 import android.app.Application
 
-
-
 // этот класс вызывается только тогда когда мы регистрируем его в в манифесте
 class MyApplication : Application (){
 
