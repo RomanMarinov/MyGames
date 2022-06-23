@@ -1,13 +1,14 @@
-package com.dev_marinov.mygames.presentation
+package com.dev_marinov.mygames.presentation.games
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.dev_marinov.mygames.R
 import com.dev_marinov.mygames.data.Games
-import com.dev_marinov.mygames.databinding.RvListBinding
+import com.dev_marinov.mygames.databinding.ItemGamesBinding
 import com.squareup.picasso.Picasso
 
-class AdapterList : RecyclerView.Adapter<AdapterList.ViewHolder>(){
+class GamesAdapter : RecyclerView.Adapter<GamesAdapter.ViewHolder>(){
 
     var hashMap: HashMap<Int, Games> = HashMap()
 
@@ -27,7 +28,7 @@ class AdapterList : RecyclerView.Adapter<AdapterList.ViewHolder>(){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val listItemBinding = RvListBinding.inflate(inflater,parent,false)
+        val listItemBinding = ItemGamesBinding.inflate(inflater,parent,false)
         return ViewHolder(listItemBinding, mListener)
     }
 
@@ -37,15 +38,15 @@ class AdapterList : RecyclerView.Adapter<AdapterList.ViewHolder>(){
 
     override fun getItemCount() = hashMap.size
 
-    inner class ViewHolder (private val binding: RvListBinding, listener: onItemClickListener)
+    inner class ViewHolder (private val binding: ItemGamesBinding, listener: onItemClickListener)
         : RecyclerView.ViewHolder(binding.root) {
         fun bind(games: Games?) {
-            binding.itemList = games
+            binding.itemGames = games
 
             Picasso.get()  // установка главной картинки игры
                 .load(games!!.background_image.toString())
                 .resize(500, 300) // обязательно свои размеры (т.к. оригинал большой)
-                //.placeholder(R.drawable.picture_not_available)
+                .placeholder(R.drawable.picture_not_available)
                 .centerCrop()
                 .into(binding.imgMain) // -----> картинка
 

@@ -1,4 +1,4 @@
-package com.dev_marinov.mygames.model
+package com.dev_marinov.mygames.domain.model
 
 import dagger.Module
 import dagger.Provides
@@ -12,12 +12,12 @@ import javax.inject.Singleton
 class RetroModule {
     //https://api.rawg.io/api/games?key=YOUR_API_KEY&dates=2019-09-01,2019-09-30&platforms=18,1,7
 
-    val baseUrl = "https://api.rawg.io/api/"
+    private val baseUrl = "https://api.rawg.io/api/"
 
     // функия которая будет возращаться как инструкция интерфейса retroService
     @Singleton
     @Provides
-    fun getRetroServiceInterFace(retrofit: Retrofit):RetroServiceInterFace {
+    fun getRetroServiceInterFace(retrofit: Retrofit): RetroServiceInterFace {
         return retrofit.create(RetroServiceInterFace::class.java)
     }
 

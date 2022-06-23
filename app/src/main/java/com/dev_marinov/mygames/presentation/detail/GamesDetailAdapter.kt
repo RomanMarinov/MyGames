@@ -1,20 +1,18 @@
-package com.dev_marinov.mygames.presentation
+package com.dev_marinov.mygames.presentation.detail
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
-import com.dev_marinov.mygames.R
 import com.dev_marinov.mygames.data.Screenshots
-import com.dev_marinov.mygames.databinding.RvListDetailBinding
+import com.dev_marinov.mygames.databinding.ItemGamesDetailBinding
 import com.squareup.picasso.Picasso
 
-class AdapterListDetail(var newArrayScreenShots: MutableList<Screenshots>)
-    : RecyclerView.Adapter<AdapterListDetail.ViewHolder>(){
+class GamesDetailAdapter(var newArrayScreenShots: MutableList<Screenshots>)
+    : RecyclerView.Adapter<GamesDetailAdapter.ViewHolder>(){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
-        val listItemBinding = RvListDetailBinding.inflate(inflater,parent,false)
+        val listItemBinding = ItemGamesDetailBinding.inflate(inflater,parent,false)
         return ViewHolder(listItemBinding)
     }
 
@@ -26,7 +24,7 @@ class AdapterListDetail(var newArrayScreenShots: MutableList<Screenshots>)
         return newArrayScreenShots.size
     }
 
-    class ViewHolder (private val binding: RvListDetailBinding) : RecyclerView.ViewHolder(binding.root) {
+    class ViewHolder (private val binding: ItemGamesDetailBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(image: String?) {
 
             Picasso.get()  // установка главной картинки игры

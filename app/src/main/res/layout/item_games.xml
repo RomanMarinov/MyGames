@@ -4,7 +4,7 @@
 
     <data>
         <variable
-            name="itemList"
+            name="itemGames"
             type="com.dev_marinov.mygames.data.Games" />
     </data>
 
@@ -41,7 +41,7 @@
                 android:shadowColor="@color/black"
                 android:shadowDx="3"
                 android:shadowDy="3"
-                android:text="@{itemList.name}"
+                android:text="@{itemGames.name}"
                 android:shadowRadius="2"
                 android:layout_marginTop="8dp"
                 android:layout_marginStart="8dp"
@@ -58,7 +58,7 @@
                 android:shadowColor="@color/black"
                 android:shadowDx="3"
                 android:shadowDy="3"
-                android:text="@{itemList.released}"
+                android:text="@{itemGames.released}"
                 android:shadowRadius="2"
                 android:layout_marginStart="8dp"
                 android:layout_marginBottom="8dp"

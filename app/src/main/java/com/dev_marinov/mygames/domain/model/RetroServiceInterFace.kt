@@ -1,4 +1,4 @@
-package com.dev_marinov.mygames.model
+package com.dev_marinov.mygames.domain.model
 
 import com.dev_marinov.mygames.data.ObjectListGames
 import retrofit2.Call

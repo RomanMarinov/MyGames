@@ -4,9 +4,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
-        <variable
-            name="itemListFragDetail"
-            type="com.dev_marinov.mygames.data.ObjectListDetail" />
+
+
     </data>
 
     <FrameLayout
@@ -15,7 +14,7 @@
         android:clickable="true"
         android:focusable="true"
         android:background="@drawable/gradient"
-        tools:context=".presentation.FragmentDetail">
+        tools:context=".presentation.detail.DetailFragment">
 
         <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"

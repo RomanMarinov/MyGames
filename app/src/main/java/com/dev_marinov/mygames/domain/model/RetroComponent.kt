@@ -1,7 +1,7 @@
-package com.dev_marinov.mygames.model
+package com.dev_marinov.mygames.domain.model
 
 
-import com.dev_marinov.mygames.presentation.ViewModelListGames
+import com.dev_marinov.mygames.presentation.games.GamesViewModel
 import dagger.Component
 import javax.inject.Singleton
 
@@ -18,7 +18,7 @@ interface RetroComponent {
 
     // определим к чему мы хотим получить доступ. Мы хотим получить доступ к нашему модулю внутри
     // нашей модели представления и мы определим нашу модель ViewModelMainActivity представления внутри компонента
-        fun inject(viewModelListGames: ViewModelListGames)
+        fun inject(gamesViewModel: GamesViewModel)
 
 
 }

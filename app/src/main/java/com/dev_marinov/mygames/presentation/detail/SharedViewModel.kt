@@ -1,4 +1,4 @@
-package com.dev_marinov.mygames.presentation
+package com.dev_marinov.mygames.presentation.detail
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel

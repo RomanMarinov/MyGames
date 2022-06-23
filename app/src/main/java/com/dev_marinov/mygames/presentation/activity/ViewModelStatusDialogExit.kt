@@ -1,4 +1,4 @@
-package com.dev_marinov.mygames.presentation
+package com.dev_marinov.mygames.presentation.activity
 
 import androidx.lifecycle.ViewModel
 

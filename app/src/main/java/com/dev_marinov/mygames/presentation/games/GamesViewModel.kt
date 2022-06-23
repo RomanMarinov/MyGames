@@ -1,57 +1,61 @@
-package com.dev_marinov.mygames.presentation
+package com.dev_marinov.mygames.presentation.games
 
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.dev_marinov.mygames.data.Games
 import com.dev_marinov.mygames.data.ObjectListGames
-import com.dev_marinov.mygames.data.*
-import com.dev_marinov.mygames.model.MyApplication
-import com.dev_marinov.mygames.model.RetroServiceInterFace
+import com.dev_marinov.mygames.domain.model.MyApplication
+import com.dev_marinov.mygames.domain.model.RetroServiceInterFace
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import javax.inject.Inject
 
 
-class ViewModelListGames(application: Application) : AndroidViewModel(application) {
+class GamesViewModel(application: Application) : AndroidViewModel(application){
 
-    //private var hashMapGames: MutableLiveData<HashMap<Int, ObjectListGames>> = MutableLiveData()
+    private val apiKey = "e0ecba986417447ebbaa87aad9d31458"
+    private val platform = "18,1,7"
+
+    var flagLoading = false
+    var dataFromString = "2019-09-01,"
+    var dataToString = "2019-09-30"
+    var lastVisibleItemPosition = 0
+    var page = 1
+
+    var statusAlertDialogDate = false
+    var statusLeftDate = false
+    var statusRightDate = false
+
+    var totalCountItem = 0
 
     @Inject
     lateinit var retroServiceInterFace: RetroServiceInterFace
 
-    private var hashMapGames: MutableLiveData<HashMap<Int, Games>>
-    val hashMapTemp: HashMap<Int, Games>
+    private var _hashMapGames: MutableLiveData<HashMap<Int, Games>> = MutableLiveData()
+    var hashMapGames: LiveData<HashMap<Int, Games>> = _hashMapGames
+    val hashMapTemp: HashMap<Int, Games> = HashMap()
 
     //инициализируем список и заполняем его данными пользователей
     init {
         // тут мы инициализируем наш класс приложения
         (application as MyApplication).getRetroComponent().inject(this)
-
-        hashMapTemp = HashMap()
-
-        hashMapGames = MutableLiveData()
-
+        getGames(apiKey,dataFromString,dataToString,page)
     }
-
-        fun getHashMapGames(): MutableLiveData<HashMap<Int, Games>> {
-            return hashMapGames
-        }
 
     // https://api.rawg.io/api/games?key=YOUR_API_KEY&dates=2019-09-01,2019-09-30&platforms=18,1,7
 
-    // функция которая будет вызвать апи
-    fun makeApiCall(apiKey: String, dataFromString: String, dataToString: String, page: Int, viewModelFlagLoading: ViewModelFlagLoading) {
-
-        Log.e("333","=makeApiCall=")
+    fun getGames(apiKey: String, dataFromString: String, dataToString: String, page: Int) {
+        Log.e("333","=getGames=")
 
         val call: Call<ObjectListGames> = retroServiceInterFace.getDataFromApi(
-            apiKey,
-            dataFromString + dataToString,
-            page,
-            "18,1,7")
+            key = apiKey,
+            dates = dataFromString + dataToString,
+            page = page,
+            platforms = platform)
         call.enqueue(object : Callback<ObjectListGames> {
             override fun onResponse(call: Call<ObjectListGames>, response: Response<ObjectListGames>) {
                 Log.e("333","=onResponse=")
@@ -85,14 +89,12 @@ class ViewModelListGames(application: Application) : AndroidViewModel(applicatio
                             )
                         }
                     // setValue уместен в основном потоке приложения, а postValue — если данные приходят из фонового потока.
-                        hashMapGames.postValue(hashMapTemp)
+                        _hashMapGames.postValue(hashMapTemp)
                     }
                 }
             }
             override fun onFailure(call: Call<ObjectListGames>, t: Throwable) {
                 Log.e("333","=onFailure=" + t)
-                // setValue уместен в основном потоке приложения, а postValue — если данные приходят из фонового потока.
-                //hashMapGames.postValue(null)
             }
         })
     }

@@ -1,4 +1,4 @@
-package com.dev_marinov.mygames.presentation
+package com.dev_marinov.mygames.presentation.activity
 
 import android.app.Dialog
 import android.os.Build
@@ -11,10 +11,8 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
-import android.widget.Button
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
-import com.airbnb.lottie.LottieAnimationView
 import com.dev_marinov.mygames.R
 import com.dev_marinov.mygames.databinding.ActivityMainBinding
 import com.dev_marinov.mygames.databinding.WindowsAlertdialogExitBinding
@@ -22,6 +20,7 @@ import com.dev_marinov.mygames.databinding.WindowsAlertdialogExitBinding
 
 import android.view.LayoutInflater
 import androidx.lifecycle.ViewModelProvider
+import com.dev_marinov.mygames.presentation.games.GamesFragment
 
 
 class MainActivity : AppCompatActivity() {
@@ -37,7 +36,7 @@ class MainActivity : AppCompatActivity() {
 
         bindingActivityMain = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
-        viewModelStatusDialogExit = ViewModelProvider(this).get(ViewModelStatusDialogExit::class.java)
+        viewModelStatusDialogExit = ViewModelProvider(this)[ViewModelStatusDialogExit::class.java]
 
         mySavedInstanceState = savedInstanceState
 
@@ -64,7 +63,7 @@ class MainActivity : AppCompatActivity() {
 
        val runnable2 = Runnable{ // задержка 2 сек перед переходом во FragmentList
            if (mySavedInstanceState == null) {
-               val fragmentList = FragmentList()
+               val fragmentList = GamesFragment()
                val fragmentManager = supportFragmentManager
                val fragmentTransaction = fragmentManager.beginTransaction()
                fragmentTransaction.add(R.id.llFragList, fragmentList)

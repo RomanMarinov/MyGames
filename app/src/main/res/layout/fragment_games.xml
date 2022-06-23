@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/gradient"
-        tools:context=".presentation.FragmentList">
+        tools:context=".presentation.games.GamesFragment">
 
 
         <TextView
@@ -22,6 +22,7 @@
             android:fontFamily="@font/black_han_sans"
             android:textColor="@color/white"
             android:textSize="30sp"
+            android:text="@string/my_games"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toLeftOf="@id/btSetRangeDate"
             app:layout_constraintTop_toTopOf="parent" />
@@ -31,7 +32,7 @@
             android:id="@+id/btSetRangeDate"
             android:layout_width="wrap_content"
             android:layout_height="40sp"
-
+            android:text="@string/set_button"
             android:paddingStart="15dp"
             android:paddingEnd="15dp"
             android:textColor="@color/white"

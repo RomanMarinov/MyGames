@@ -1,8 +1,5 @@
 package com.dev_marinov.mygames.data
 
-import com.google.gson.annotations.SerializedName
-import org.json.JSONObject
-import java.util.*
 import kotlin.collections.ArrayList
 
 
