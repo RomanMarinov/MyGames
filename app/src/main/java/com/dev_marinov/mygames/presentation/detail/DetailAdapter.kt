@@ -3,12 +3,12 @@ package com.dev_marinov.mygames.presentation.detail
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.dev_marinov.mygames.data.Screenshots
+import com.dev_marinov.mygames.domain.Screenshot
 import com.dev_marinov.mygames.databinding.ItemGamesDetailBinding
 import com.squareup.picasso.Picasso
 
-class GamesDetailAdapter(var newArrayScreenShots: MutableList<Screenshots>)
-    : RecyclerView.Adapter<GamesDetailAdapter.ViewHolder>(){
+class DetailAdapter(var newArrayScreenShots: MutableList<Screenshot>)
+    : RecyclerView.Adapter<DetailAdapter.ViewHolder>(){
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)

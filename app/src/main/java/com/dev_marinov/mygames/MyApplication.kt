@@ -1,7 +1,9 @@
-package com.dev_marinov.mygames.domain.model
+package com.dev_marinov.mygames
 
 import android.app.Application
-import com.dev_marinov.mygames.domain.model.DaggerRetroComponent
+import com.dev_marinov.mygames.di.DaggerRetroComponent
+import com.dev_marinov.mygames.di.RetroComponent
+import com.dev_marinov.mygames.di.RetroModule
 
 // этот класс вызывается только тогда когда мы регистрируем его в в манифесте
 class MyApplication : Application (){

@@ -26,7 +26,7 @@ import com.dev_marinov.mygames.presentation.games.GamesFragment
 class MainActivity : AppCompatActivity() {
 
     private lateinit var bindingActivityMain: ActivityMainBinding
-    lateinit var viewModelStatusDialogExit: ViewModelStatusDialogExit
+    lateinit var mainActivityViewModel: MainActivityViewModel
 
     private var mySavedInstanceState: Bundle? = null
 
@@ -36,7 +36,7 @@ class MainActivity : AppCompatActivity() {
 
         bindingActivityMain = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
-        viewModelStatusDialogExit = ViewModelProvider(this)[ViewModelStatusDialogExit::class.java]
+        mainActivityViewModel = ViewModelProvider(this)[MainActivityViewModel::class.java]
 
         mySavedInstanceState = savedInstanceState
 
@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
 
         // при создании макета проверяем статус был ли перед созданием макета открыт диалог
         // если да (true), значит запустим его снова
-        if (viewModelStatusDialogExit.status) {
+        if (mainActivityViewModel.status) {
             myAlertDialog()
         }
 
@@ -125,9 +125,9 @@ class MainActivity : AppCompatActivity() {
         dialog.show()
 
             // костыль для повторного открытия диалога если перевернули экран
-        viewModelStatusDialogExit.status = true
+        mainActivityViewModel.status = true
         dialog.setOnDismissListener {
-            viewModelStatusDialogExit.status = false
+            mainActivityViewModel.status = false
         }
 
         bindingAlertDialogExit.tvTitle.text = resources.getString(R.string.do_you_wish)

@@ -1,13 +1,12 @@
-package com.dev_marinov.mygames.data.repository
+package com.dev_marinov.mygames.domain
 
 import com.dev_marinov.mygames.data.ObjectConvertDate
-import com.dev_marinov.mygames.domain.repository.InterFaceConvertDateRepository
 
 
 // УБРАТЬ МАНИПУЛЯЦИИ С ДАННЫМИ
-class ConvertDateRepositoryImpl() : InterFaceConvertDateRepository {
+class DateConverter {
 
-    override fun getName(objectConvertDate: ObjectConvertDate) : String {
+   fun getName(objectConvertDate: ObjectConvertDate) : String {
 
         var dateResult = ""
 

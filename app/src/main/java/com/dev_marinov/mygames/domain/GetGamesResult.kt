@@ -1,40 +1,13 @@
-package com.dev_marinov.mygames.data
-
-import kotlin.collections.ArrayList
+package com.dev_marinov.mygames.domain
 
 
-data class ObjectListGames (val results: List<Games>)
-
-
-data class Games(
-    var name: String?, // название игры
-    var released: String?,
-    var background_image: String?,
-    var rating: String?,
-    var rating_top: String?,
-    var added: String?,
-    var updated: String?,
-    var short_screenshots: ArrayList<Screenshots> = ArrayList(),
-    var platforms: List<Platforms> = ArrayList()
+data class GetGamesResult(
+    val results: List<Game>
 )
-
-data class Screenshots(
-    var image: String?
-)
-
 
 data class Platforms(
     var platform: Platform
 )
-data class Platform(
-    var name: String?
-
-)
-
-
-
-
-
 
 
 //data class ObjectListGames (val results: List<Games>)

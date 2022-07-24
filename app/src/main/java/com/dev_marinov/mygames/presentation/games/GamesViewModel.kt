@@ -5,10 +5,10 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.dev_marinov.mygames.data.Games
-import com.dev_marinov.mygames.data.ObjectListGames
-import com.dev_marinov.mygames.domain.model.MyApplication
-import com.dev_marinov.mygames.domain.model.RetroServiceInterFace
+import com.dev_marinov.mygames.MyApplication
+import com.dev_marinov.mygames.data.remote.GamesService
+import com.dev_marinov.mygames.domain.Game
+import com.dev_marinov.mygames.domain.GetGamesResult
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -33,11 +33,11 @@ class GamesViewModel(application: Application) : AndroidViewModel(application){
     var totalCountItem = 0
 
     @Inject
-    lateinit var retroServiceInterFace: RetroServiceInterFace
+    lateinit var retroServiceInterFace: GamesService
 
-    private var _hashMapGames: MutableLiveData<HashMap<Int, Games>> = MutableLiveData()
-    var hashMapGames: LiveData<HashMap<Int, Games>> = _hashMapGames
-    val hashMapTemp: HashMap<Int, Games> = HashMap()
+    private var _hashMapGames: MutableLiveData<HashMap<Int, Game>> = MutableLiveData()
+    var hashMapGames: LiveData<HashMap<Int, Game>> = _hashMapGames
+    val hashMapTemp: HashMap<Int, Game> = HashMap()
 
     //инициализируем список и заполняем его данными пользователей
     init {
@@ -51,13 +51,13 @@ class GamesViewModel(application: Application) : AndroidViewModel(application){
     fun getGames(apiKey: String, dataFromString: String, dataToString: String, page: Int) {
         Log.e("333","=getGames=")
 
-        val call: Call<ObjectListGames> = retroServiceInterFace.getDataFromApi(
+        val call: Call<GetGamesResult> = retroServiceInterFace.getDataFromApi(
             key = apiKey,
             dates = dataFromString + dataToString,
             page = page,
             platforms = platform)
-        call.enqueue(object : Callback<ObjectListGames> {
-            override fun onResponse(call: Call<ObjectListGames>, response: Response<ObjectListGames>) {
+        call.enqueue(object : Callback<GetGamesResult> {
+            override fun onResponse(call: Call<GetGamesResult>, response: Response<GetGamesResult>) {
                 Log.e("333","=onResponse=")
 
                 if(response.isSuccessful) {
@@ -76,7 +76,7 @@ class GamesViewModel(application: Application) : AndroidViewModel(application){
                             val shortScreenshots = items.results[i].short_screenshots
                             val platforms = items.results[i].platforms
 
-                            hashMapTemp[hashMapTemp.size] = Games(
+                            hashMapTemp[hashMapTemp.size] = Game(
                                 name,
                                 released,
                                 backgroundImage,
@@ -93,7 +93,7 @@ class GamesViewModel(application: Application) : AndroidViewModel(application){
                     }
                 }
             }
-            override fun onFailure(call: Call<ObjectListGames>, t: Throwable) {
+            override fun onFailure(call: Call<GetGamesResult>, t: Throwable) {
                 Log.e("333","=onFailure=" + t)
             }
         })

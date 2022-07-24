@@ -9,7 +9,6 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.view.*
-import android.widget.DatePicker
 import androidx.fragment.app.Fragment
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
@@ -20,12 +19,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.dev_marinov.mygames.R
 import com.dev_marinov.mygames.data.ObjectListDetail
-import com.dev_marinov.mygames.data.Platforms
 import com.dev_marinov.mygames.databinding.WindowsAlertdialogBinding
 import com.dev_marinov.mygames.data.ObjectConvertDate
-import com.dev_marinov.mygames.data.repository.ConvertDateRepositoryImpl
+import com.dev_marinov.mygames.domain.DateConverter
 import com.dev_marinov.mygames.databinding.FragmentGamesBinding
-import com.dev_marinov.mygames.domain.usecase.GetConvertDateUseCase
+import com.dev_marinov.mygames.domain.Platforms
 import com.dev_marinov.mygames.presentation.activity.MainActivity
 import com.dev_marinov.mygames.presentation.detail.DetailFragment
 import com.dev_marinov.mygames.presentation.detail.SharedViewModel
@@ -90,7 +88,6 @@ class GamesFragment : Fragment() {
             }
         }
 
-
         gamesAdapter.setOnItemClickListener(object : GamesAdapter.onItemClickListener {
             override fun onItemClick(position: Int) {
                 getClickPosition(position)
@@ -114,8 +111,7 @@ class GamesFragment : Fragment() {
                 gamesViewModel.lastVisibleItemPosition = getMaxPosition(lastVisibleItemArrayPositions2!!)
 
                 if (gamesViewModel.flagLoading == false
-                    && (gamesViewModel.totalCountItem - 5) ==  gamesViewModel.lastVisibleItemPosition)
-                {
+                    && (gamesViewModel.totalCountItem - 5) ==  gamesViewModel.lastVisibleItemPosition) {
                     // тут я запускаю новый запрос даных на сервер с offset
                     val runnable = Runnable {
                         gamesViewModel.page = gamesViewModel.page + 1// переменная для увеличения значения offset
@@ -235,15 +231,16 @@ class GamesFragment : Fragment() {
         onDateSetListenerFrom = DatePickerDialog.OnDateSetListener { datePicker, year, month, day ->
             Log.e("333", "-datePicker="+ "-year-" + year + "-month-" + month + "-day-" + day)
 
-            // обращаемся к всопомгательному классу конвертации даты календаря
-            val convertDateRepositoryImpl = ConvertDateRepositoryImpl()
-            val getConvertDateUseCase = GetConvertDateUseCase(interFaceConvertDateRepository = convertDateRepositoryImpl)
-            val objectConvertDate = ObjectConvertDate(year = year,month = month, day = day)
 
+                // передавать во вьюмодель
+
+            // обращаемся к всопомгательному классу конвертации даты календаря
+            val dateConverter = DateConverter()
+            val objectConvertDate = ObjectConvertDate(year = year,month = month, day = day)
             // получаем из метода getDate строку с переработанной датой под сетевой запрос апи
-            gamesViewModel.dataFromString = getConvertDateUseCase.execute(objectConvertDate) + ","
+            gamesViewModel.dataFromString = dateConverter.getName(objectConvertDate) + ","
             // получаем из метода getDate строку с переработанной датой для отображения в tvDateFrom
-            bindingAlertDialogDate.tvDateFrom.text = getConvertDateUseCase.execute(objectConvertDate)
+            bindingAlertDialogDate.tvDateFrom.text = dateConverter.getName(objectConvertDate)
         }
 
             // установка даты для отображения в tvDateTo
@@ -258,14 +255,12 @@ class GamesFragment : Fragment() {
             Log.e("333", "-datePicker=" + datePicker + "-year-" + year + "-month-" + month + "-day-" + day)
 
             // обращаемся к всопомгательному классу конвертации даты календаря
-            val convertDateRepositoryImpl = ConvertDateRepositoryImpl()
-            val getConvertDateUseCase = GetConvertDateUseCase(interFaceConvertDateRepository = convertDateRepositoryImpl)
+            val dateConverter = DateConverter()
             val objectConvertDate = ObjectConvertDate(year = year,month = month, day = day)
-
             // получаем из метода getDate строку с переработанной датой под сетевой запрос апи
-            gamesViewModel.dataToString = getConvertDateUseCase.execute(objectConvertDate)
+            gamesViewModel.dataToString = dateConverter.getName(objectConvertDate)
             // получаем из метода getDate строку с переработанной датой для отображения в tvDateFrom
-            bindingAlertDialogDate.tvDateTo.text = getConvertDateUseCase.execute(objectConvertDate)
+            bindingAlertDialogDate.tvDateTo.text = dateConverter.getName(objectConvertDate)
 
         }
 
@@ -355,3 +350,17 @@ class GamesFragment : Fragment() {
 //    }
 
 }
+
+//open class MyClass1{
+//    open fun one(){
+//        println("что печатает")
+//    }
+//
+//}
+//
+//class MyClass2 : MyClass1() {
+////    fun one(){
+////        println("что печатает")
+////    }
+//
+//}

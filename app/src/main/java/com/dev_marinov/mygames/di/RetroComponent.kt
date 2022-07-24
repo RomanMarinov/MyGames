@@ -1,4 +1,4 @@
-package com.dev_marinov.mygames.domain.model
+package com.dev_marinov.mygames.di
 
 
 import com.dev_marinov.mygames.presentation.games.GamesViewModel

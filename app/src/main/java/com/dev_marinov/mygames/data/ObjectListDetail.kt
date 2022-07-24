@@ -1,12 +1,15 @@
 package com.dev_marinov.mygames.data
 
+import com.dev_marinov.mygames.domain.Platforms
+import com.dev_marinov.mygames.domain.Screenshot
+
 data class ObjectListDetail(
-    var nameGame: String = "", // название игры
-    var released: String = "",  // дата выхода
-    var rating: String = "",  //рейтинг текущий
-    var ratingTop: String = "",  // рейтинг максимальный
-    var added: String = "",  // сколько пользователей добавило
-    var updated: String = "",  // когда было обновление
-    var arrayScreenShots: MutableList<Screenshots> = ArrayList(),
+    var nameGame: String,
+    var released: String,
+    var rating: String,
+    var ratingTop: String,
+    var added: String,
+    var updated: String,
+    var arrayScreenShots: MutableList<Screenshot> = ArrayList(),
     var arrayPlatforms: MutableList<Platforms> = ArrayList()
 )

@@ -4,16 +4,16 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.dev_marinov.mygames.R
-import com.dev_marinov.mygames.data.Games
 import com.dev_marinov.mygames.databinding.ItemGamesBinding
+import com.dev_marinov.mygames.domain.Game
 import com.squareup.picasso.Picasso
 
 class GamesAdapter : RecyclerView.Adapter<GamesAdapter.ViewHolder>(){
 
-    var hashMap: HashMap<Int, Games> = HashMap()
+    var hashMap: HashMap<Int, Game> = HashMap()
 
     // метод для обновления списка из вне
-    fun setUpdateData(hashMap: HashMap<Int, Games>) {
+    fun setUpdateData(hashMap: HashMap<Int, Game>) {
         this.hashMap = hashMap
     }
 
@@ -40,11 +40,11 @@ class GamesAdapter : RecyclerView.Adapter<GamesAdapter.ViewHolder>(){
 
     inner class ViewHolder (private val binding: ItemGamesBinding, listener: onItemClickListener)
         : RecyclerView.ViewHolder(binding.root) {
-        fun bind(games: Games?) {
-            binding.itemGames = games
+        fun bind(game: Game?) {
+            binding.itemGames = game
 
             Picasso.get()  // установка главной картинки игры
-                .load(games!!.background_image.toString())
+                .load(game!!.background_image.toString())
                 .resize(500, 300) // обязательно свои размеры (т.к. оригинал большой)
                 .placeholder(R.drawable.picture_not_available)
                 .centerCrop()

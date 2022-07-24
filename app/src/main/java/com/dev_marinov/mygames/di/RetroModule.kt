@@ -1,5 +1,6 @@
-package com.dev_marinov.mygames.domain.model
+package com.dev_marinov.mygames.di
 
+import com.dev_marinov.mygames.data.remote.GamesService
 import dagger.Module
 import dagger.Provides
 import retrofit2.Retrofit
@@ -17,8 +18,8 @@ class RetroModule {
     // функия которая будет возращаться как инструкция интерфейса retroService
     @Singleton
     @Provides
-    fun getRetroServiceInterFace(retrofit: Retrofit): RetroServiceInterFace {
-        return retrofit.create(RetroServiceInterFace::class.java)
+    fun getRetroServiceInterFace(retrofit: Retrofit): GamesService {
+        return retrofit.create(GamesService::class.java)
     }
 
     // функция по возрату экземпляра retrofit
