@@ -5,12 +5,11 @@ import android.app.Dialog
 import android.content.res.Configuration
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.*
 import androidx.fragment.app.Fragment
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import java.util.*
 import androidx.databinding.DataBindingUtil
@@ -22,14 +21,13 @@ import com.dev_marinov.mygames.databinding.WindowsAlertdialogBinding
 import com.dev_marinov.mygames.data.ObjectConvertDate
 import com.dev_marinov.mygames.domain.DateConverter
 import com.dev_marinov.mygames.databinding.FragmentGamesBinding
-import com.dev_marinov.mygames.presentation.activity.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class GamesFragment : Fragment() {
 
     val apiKey = "e0ecba986417447ebbaa87aad9d31458"
-    private lateinit var bindingFragmentGames: FragmentGamesBinding
+    private lateinit var binding: FragmentGamesBinding
     private val platform = "18,1,7"
     lateinit var viewModel: GamesViewModel
 
@@ -44,37 +42,34 @@ class GamesFragment : Fragment() {
     private fun initInterFace(inflater: LayoutInflater, container: ViewGroup?): View {
         container?.let { container.removeAllViewsInLayout() }
 
-        // получить int ориентации
         val orientation = requireActivity().resources.configuration.orientation
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-            bindingFragmentGames = DataBindingUtil.inflate(inflater, R.layout.fragment_games, container, false)
+            binding = DataBindingUtil.inflate(inflater, R.layout.fragment_games, container, false)
         } else {
-            bindingFragmentGames = DataBindingUtil.inflate(inflater, R.layout.fragment_games, container, false)
+            binding = DataBindingUtil.inflate(inflater, R.layout.fragment_games, container, false)
         }
-            myRecyclerLayoutManagerAdapter(container)
+            setLayout(container)
 
-        return bindingFragmentGames.root
+        return binding.root
     }
 
-    // метод для установки recyclerview, GridLayoutManager и AdapterListHome
-    private fun myRecyclerLayoutManagerAdapter(container: ViewGroup?) {
+    private fun setLayout(container: ViewGroup?) {
 
         viewModel = ViewModelProvider(this)[GamesViewModel::class.java]
 
         checkStatusAlertDialogDate(container)
-        bindingFragmentGames.progressBar.visibility = View.VISIBLE
+
+        binding.progressBar.visibility = View.VISIBLE
 
         val gamesAdapter = GamesAdapter(viewModel::onClick)
         val staggeredGridLayoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
-        bindingFragmentGames.recyclerView.apply {
+        binding.recyclerView.apply {
             setHasFixedSize(false)
             layoutManager = staggeredGridLayoutManager
             adapter = gamesAdapter
         }
 
         viewModel.games.observe(viewLifecycleOwner) {
-            bindingFragmentGames.progressBar.visibility = View.GONE
-            viewModel.flagLoading = false
             it?.let {
                 gamesAdapter.submitList(it)
             }
@@ -84,54 +79,30 @@ class GamesFragment : Fragment() {
             navigateToDetailFragment(it)
         }
 
-        bindingFragmentGames.btSetRangeDate.setOnClickListener { // кнопка выбора/установка диапазона дат для получения новых данных
-            myAlertDialogMain(container)
+        binding.btSetRangeDate.setOnClickListener { // кнопка выбора/установка диапазона дат для получения новых данных
+            setAlertDialogRangeDate(container)
         }
 
-        // второй слушатель RecyclerView реализации offset чтобы подгружать данные при скроле
+        viewModel.flagLoading.observe(viewLifecycleOwner) {
+            binding.progressBar.isVisible = it
+        }
+
         val scrollListener: RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                // эта часть отвечает за срабатывание запроса на получение дополнительных данных для записи в hashMap
-                // totalCountItem переменная всегда равно размеру hashmap в который добавляется + 20
-                viewModel.totalCountItem = staggeredGridLayoutManager.itemCount
-
-                // эта часть отвечет только за передачу последнего видимомо элемента
-               val lastVisibleItemArrayPositions2 = staggeredGridLayoutManager.findLastVisibleItemPositions(null)
-                viewModel.lastVisibleItemPosition = getMaxPosition(lastVisibleItemArrayPositions2!!)
-
-                if (viewModel.flagLoading == false
-                    && (viewModel.totalCountItem - 5) ==  viewModel.lastVisibleItemPosition) {
-                    // тут я запускаю новый запрос даных на сервер с offset
-                    val runnable = Runnable {
-                        viewModel.page = viewModel.page + 1// переменная для увеличения значения offset
-
-                        viewModel.getGames(apiKey, viewModel.dataFromString,
-                            viewModel.dataToString, viewModel.page, platform)
-                    }
-                    Handler(Looper.getMainLooper()).postDelayed(runnable, 100)
-
-                    (context as MainActivity?)?.runOnUiThread {
-                        bindingFragmentGames.progressBar.visibility = View.VISIBLE
-                    }
-
-                    viewModel.flagLoading = true // и возвращаю flagLoading в исходное состояние
-                }
-            }
-
-            fun getMaxPosition(positions: IntArray): Int {
-                return positions[positions.size-1]
+                viewModel.onScroll(staggeredGridLayoutManager.itemCount, staggeredGridLayoutManager.findLastVisibleItemPositions(null))
             }
         }
-        bindingFragmentGames.recyclerView.addOnScrollListener(scrollListener)
+        binding.recyclerView.addOnScrollListener(scrollListener)
     }
 
     private fun checkStatusAlertDialogDate(container: ViewGroup?) {
         // при создании макета проверяем статус был ли перед созданием макета открыт диалог
         // если да (true), значит запустим его снова
-        if(viewModel.statusAlertDialogDate) {
-            // обращаемся к вспомогательному классу диалога для запуска
-            myAlertDialogMain(container)
-            if(viewModel.statusLeftDate) {
+
+        if (viewModel.statusAlertDialogDate) {
+            setAlertDialogRangeDate(container)
+
+            if (viewModel.statusLeftDate) {
                 getCalendar(onDateSetListenerFrom) // запускаем левый календарь
             }
             if(viewModel.statusRightDate) {
@@ -140,18 +111,10 @@ class GamesFragment : Fragment() {
         }
     }
 
-    private fun navigateToDetailFragment(id: String) {
-        val action = GamesFragmentDirections.actionGamesFragmentToDetailFragment(id)
-        findNavController().navigate(action)
-   }
-
-    private fun myAlertDialogMain(container: ViewGroup?) { // установка дат
+    private fun setAlertDialogRangeDate(container: ViewGroup?) { // установка дат
         val bindingAlertDialogDate: WindowsAlertdialogBinding = DataBindingUtil
             .inflate(LayoutInflater.from(requireActivity()),
                 R.layout.windows_alertdialog, container, false)
-
-        bindingAlertDialogDate.btCancel.text = resources.getString(R.string.cancel)
-        bindingAlertDialogDate.btOk.text = resources.getString(R.string.ok)
 
         val dialog = Dialog(requireActivity())
         dialog.setContentView(bindingAlertDialogDate.root)
@@ -165,10 +128,13 @@ class GamesFragment : Fragment() {
         dialog.show()
         dialog.window!!.attributes = lp
 
-        // костыль для повторного отображения диалога при повороте экрана
+        // для повторного отображения диалога при повороте экрана
+
+
+
+
         viewModel.statusAlertDialogDate = true
         dialog.setOnDismissListener {
-            Log.e("333", "-dialog.setOnDismissListener=")
             viewModel.statusAlertDialogDate = false
         }
 
@@ -178,6 +144,7 @@ class GamesFragment : Fragment() {
 
         // клик на textview слева
         bindingAlertDialogDate.tvDateFrom.setOnClickListener {
+
             viewModel.statusLeftDate = true
             getCalendar(onDateSetListenerFrom)
             Log.e("333", "bindingAlertDialogDate.tvDateFro")
@@ -188,7 +155,7 @@ class GamesFragment : Fragment() {
             Log.e("333", "-datePicker="+ "-year-" + year + "-month-" + month + "-day-" + day)
 
 
-                // передавать во вьюмодель
+            viewModel.onDateSelected(year, month, day)
 
             // обращаемся к всопомгательному классу конвертации даты календаря
             val dateConverter = DateConverter()
@@ -247,11 +214,6 @@ class GamesFragment : Fragment() {
                 // вызов нового апи запроса в сеть для получения данных об играх
                 viewModel.getGames(apiKey, viewModel.dataFromString as String,
                     viewModel.dataToString as String, 1, platform)
-
-                (context as MainActivity?)?.runOnUiThread {
-                    bindingFragmentGames.progressBar.visibility = View.VISIBLE
-                }
-
             }else{
                 val toast = Toast.makeText(activity, "The first date must be less than the second date", Toast.LENGTH_LONG)
                 toast.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0, 0)
@@ -259,7 +221,6 @@ class GamesFragment : Fragment() {
             }
         }
     }
-
 
     private fun getCalendar(onDateSetListener: DatePickerDialog.OnDateSetListener?) {
 
@@ -275,10 +236,9 @@ class GamesFragment : Fragment() {
         datePickerDialog.window?.setBackgroundDrawable(ColorDrawable(R.drawable.gradient))
         datePickerDialog.show()
 
-
         datePickerDialog.setOnDismissListener {
 
-            if(viewModel.statusLeftDate) {
+            if (viewModel.statusLeftDate) {
                 viewModel.statusLeftDate = false
             }
             if(viewModel.statusRightDate) {
@@ -287,6 +247,10 @@ class GamesFragment : Fragment() {
         }
     }
 
+    private fun navigateToDetailFragment(id: String) {
+        val action = GamesFragmentDirections.actionGamesFragmentToDetailFragment(id)
+        findNavController().navigate(action)
+    }
 //    // функция переработки полученной даты календаря (где нет нулей, там поставил)
 //    fun convertDate(i: Int, i2: Int, i3: Int): String {
 //        // i - год, i2 - месяц(январь с нуля идет отсчет), i3 - день

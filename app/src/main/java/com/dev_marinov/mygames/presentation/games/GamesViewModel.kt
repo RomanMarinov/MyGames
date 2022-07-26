@@ -1,6 +1,5 @@
 package com.dev_marinov.mygames.presentation.games
 
-import android.util.Log
 import androidx.lifecycle.*
 import com.dev_marinov.mygames.SingleLiveEvent
 import com.dev_marinov.mygames.domain.game.Game
@@ -17,18 +16,17 @@ class GamesViewModel @Inject constructor(
 
     private val apiKey = "e0ecba986417447ebbaa87aad9d31458"
     private val platform = "18,1,7"
-
-    var flagLoading = false
     var dataFromString = "2019-09-01,"
     var dataToString = "2019-09-30"
     var lastVisibleItemPosition = 0
     var page = 1
 
     var statusAlertDialogDate = false
+
     var statusLeftDate = false
     var statusRightDate = false
 
-    var totalCountItem = 0
+    private val limiter = 5
 
     private val _uploadData = SingleLiveEvent<String>()
     val uploadData: SingleLiveEvent<String> = _uploadData
@@ -36,11 +34,13 @@ class GamesViewModel @Inject constructor(
     private val _games: MutableLiveData<List<Game>> = MutableLiveData()
     var games: LiveData<List<Game>> = _games
 
+    private val _flagLoading: MutableLiveData<Boolean> = MutableLiveData()
+    val flagLoading: LiveData<Boolean> = _flagLoading
+
+
     init {
         getGames(apiKey, dataFromString, dataToString, page, platform = platform)
     }
-
-    // https://api.rawg.io/api/games?key=YOUR_API_KEY&dates=2019-09-01,2019-09-30&platforms=18,1,7
 
     fun clearGames(){
         _games.value = listOf()
@@ -51,18 +51,49 @@ class GamesViewModel @Inject constructor(
     }
 
     fun getGames(apiKey: String, dataFromString: String, dataToString: String, page: Int, platform: String) {
-        Log.e("333", "=getGames=")
+        _flagLoading.value = true
 
         viewModelScope.launch(Dispatchers.IO) {
+
+            var list: MutableList<Game> = mutableListOf()
+            _games.value?.let {
+                list = it.toMutableList()
+            }
+
             iGameRepository.getGames(
                 apiKey = apiKey,
                 dataFromString = dataFromString,
                 dataToString = dataToString,
                 page = page,
                 platforms = platform)?.let {
-                    _games.postValue(it)
+                    list.addAll(it)
+
+                    _games.postValue(list)
             }
+            _flagLoading.postValue(false)
         }
+    }
+
+    fun onScroll(totalCountItem: Int, findLastVisibleItemPositions: IntArray) {
+
+        lastVisibleItemPosition = getMaxPosition(findLastVisibleItemPositions)
+
+        if (_flagLoading.value == false && (totalCountItem - limiter) == lastVisibleItemPosition) {
+            page += 1
+            getGames(apiKey, dataFromString, dataToString, page, platform)
+        }
+    }
+
+    private fun getMaxPosition(positions: IntArray): Int {
+        return positions[positions.size-1]
+    }
+
+    fun onDataPickerFrom() {
+        TODO("Not yet implemented")
+    }
+
+    fun onDateSelected(year: Int, month: Int, day: Int) {
+        TODO("Not yet implemented")
     }
 
 }

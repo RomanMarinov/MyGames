@@ -1,11 +1,8 @@
 package com.dev_marinov.mygames.presentation.activity
 
-import android.app.Dialog
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.view.WindowInsets
@@ -15,18 +12,17 @@ import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.dev_marinov.mygames.R
 import com.dev_marinov.mygames.databinding.ActivityMainBinding
-import com.dev_marinov.mygames.databinding.WindowsAlertdialogExitBinding
 
 
-import android.view.LayoutInflater
 import androidx.lifecycle.ViewModelProvider
-import com.dev_marinov.mygames.presentation.games.GamesFragment
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var bindingActivityMain: ActivityMainBinding
+    private lateinit var binding: ActivityMainBinding
     lateinit var mainActivityViewModel: MainActivityViewModel
 
     private var mySavedInstanceState: Bundle? = null
@@ -35,7 +31,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Log.e("333","=MainActivity=")
 
-        bindingActivityMain = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         mainActivityViewModel = ViewModelProvider(this)[MainActivityViewModel::class.java]
 
@@ -44,12 +40,6 @@ class MainActivity : AppCompatActivity() {
         setWindow() // сетинг для статус бара и для бара навигации
         hideSystemUI() // сетинг для фул скрин по соответствующему сдк
         supportActionBar?.hide() // скрыть экшенбар
-
-        // при создании макета проверяем статус был ли перед созданием макета открыт диалог
-        // если да (true), значит запустим его снова
-        if (mainActivityViewModel.status) {
-            myAlertDialog()
-        }
 
     }
 
@@ -85,6 +75,20 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+    override fun onBackPressed() {
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.navHostFragment) as NavHostFragment?
+        navHostFragment?.let {
+            val backStackEntryCount = navHostFragment.childFragmentManager.backStackEntryCount
+            if (backStackEntryCount > 1) { super.onBackPressed() } else { showExitDialog() }
+        }
+    }
+
+    private fun showExitDialog(){
+        binding.navHostFragment.findNavController().navigate(R.id.action_gamesFragment_to_exitDialogFragment)
+    }
+
+
 //    override fun onBackPressed() {
 //        // как только будет ноль (последний экран) выполниться else
 //        if (supportFragmentManager.backStackEntryCount > 0) {
@@ -95,33 +99,33 @@ class MainActivity : AppCompatActivity() {
 //        }
 //    }
 
-    private fun myAlertDialog() {
-        val bindingAlertDialogExit: WindowsAlertdialogExitBinding = DataBindingUtil
-            .inflate(LayoutInflater.from(this), R.layout.windows_alertdialog_exit, null, false)
-
-        val dialog = Dialog(this)
-        dialog.setContentView(bindingAlertDialogExit.root)
-        dialog.setCancelable(true)
-        dialog.show()
-
-            // костыль для повторного открытия диалога если перевернули экран
-        mainActivityViewModel.status = true
-        dialog.setOnDismissListener {
-            mainActivityViewModel.status = false
-        }
-
-        bindingAlertDialogExit.tvTitle.text = resources.getString(R.string.do_you_wish)
-        bindingAlertDialogExit.btNo.text = resources.getString(R.string.no)
-        bindingAlertDialogExit.btYes.text = resources.getString(R.string.yes)
-
-        bindingAlertDialogExit.btNo.setOnClickListener {
-            dialog.dismiss()
-            dialog.cancel()
-        }
-        bindingAlertDialogExit.btYes.setOnClickListener{
-            dialog.dismiss()
-            finish()
-        }
-    }
+//    private fun myAlertDialog() {
+//        val bindingAlertDialogExit: WindowsAlertdialogExitBinding = DataBindingUtil
+//            .inflate(LayoutInflater.from(this), R.layout.windows_alertdialog_exit, null, false)
+//
+//        val dialog = Dialog(this)
+//        dialog.setContentView(bindingAlertDialogExit.root)
+//        dialog.setCancelable(true)
+//        dialog.show()
+//
+//            // костыль для повторного открытия диалога если перевернули экран
+//        mainActivityViewModel.status = true
+//        dialog.setOnDismissListener {
+//            mainActivityViewModel.status = false
+//        }
+//
+//        bindingAlertDialogExit.tvTitle.text = resources.getString(R.string.do_you_wish)
+//        bindingAlertDialogExit.btNo.text = resources.getString(R.string.no)
+//        bindingAlertDialogExit.btYes.text = resources.getString(R.string.yes)
+//
+//        bindingAlertDialogExit.btNo.setOnClickListener {
+//            dialog.dismiss()
+//            dialog.cancel()
+//        }
+//        bindingAlertDialogExit.btYes.setOnClickListener{
+//            dialog.dismiss()
+//            finish()
+//        }
+//    }
 
 }

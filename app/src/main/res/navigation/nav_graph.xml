@@ -25,6 +25,9 @@
             app:exitAnim="@anim/exit_left_to_right"
             app:popEnterAnim="@anim/enter_right_to_left"
             app:popExitAnim="@anim/exit_right_to_left" />
+        <action
+            android:id="@+id/action_gamesFragment_to_exitDialogFragment"
+            app:destination="@id/exitDialogFragment" />
     </fragment>
     <fragment
         android:id="@+id/detailFragment"
@@ -35,4 +38,8 @@
             app:argType="string"
             android:defaultValue='' />
     </fragment>
+    <dialog
+        android:id="@+id/exitDialogFragment"
+        android:name="com.dev_marinov.geniussonglyrics.presentation.exitdialog.ExitDialogFragment"
+        android:label="ExitDialogFragment" />
 </navigation>

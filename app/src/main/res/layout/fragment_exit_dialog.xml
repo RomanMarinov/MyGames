@@ -6,7 +6,8 @@
         android:layout_width="match_parent"
         android:layout_height="100dp"
         android:elevation="10dp"
-        android:background="@drawable/gradient">
+        android:background="@drawable/gradient"
+        >
 
         <TextView
             android:id="@+id/tvTitle"

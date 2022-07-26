@@ -1,4 +1,4 @@
-package com.dev_marinov.geniussonglyrics.presentation.exitdialog
+package com.dev_marinov.mygames.presentation.exitdialog
 
 import android.os.Bundle
 import android.util.Log
