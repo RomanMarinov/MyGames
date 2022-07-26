@@ -1,26 +1,24 @@
 package com.dev_marinov.mygames
 
 import android.app.Application
-import com.dev_marinov.mygames.di.DaggerRetroComponent
-import com.dev_marinov.mygames.di.RetroComponent
-import com.dev_marinov.mygames.di.RetroModule
+import dagger.hilt.android.HiltAndroidApp
 
-// этот класс вызывается только тогда когда мы регистрируем его в в манифесте
+@HiltAndroidApp
 class MyApplication : Application (){
 
-    // первая функция, которая запускаяется при старте приложения
-
-    // здесь будет инициализироваться наш класс retroComponent
-    private lateinit var retroComponent: RetroComponent
-
-    override fun onCreate() {
-        super.onCreate()
-
-        // т.к. DaggerRetroComponent создается автоматически, поэтому он должен быть создан во ремя компиляции
-        retroComponent = DaggerRetroComponent.builder().retroModule(RetroModule()).build()
-    }
-
-    fun getRetroComponent(): RetroComponent {
-        return retroComponent
-    }
+//    // первая функция, которая запускаяется при старте приложения
+//
+//    // здесь будет инициализироваться наш класс retroComponent
+//    private lateinit var retroComponent: RetroComponent
+//
+//    override fun onCreate() {
+//        super.onCreate()
+//
+//        // т.к. DaggerRetroComponent создается автоматически, поэтому он должен быть создан во ремя компиляции
+//        retroComponent = DaggerRetroComponent.builder().retroModule(RetroModule()).build()
+//    }
+//
+//    fun getRetroComponent(): RetroComponent {
+//        return retroComponent
+//    }
 }

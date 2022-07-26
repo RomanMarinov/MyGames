@@ -14,29 +14,24 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import java.util.*
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.dev_marinov.mygames.R
-import com.dev_marinov.mygames.data.ObjectListDetail
 import com.dev_marinov.mygames.databinding.WindowsAlertdialogBinding
 import com.dev_marinov.mygames.data.ObjectConvertDate
 import com.dev_marinov.mygames.domain.DateConverter
 import com.dev_marinov.mygames.databinding.FragmentGamesBinding
-import com.dev_marinov.mygames.domain.Platforms
 import com.dev_marinov.mygames.presentation.activity.MainActivity
-import com.dev_marinov.mygames.presentation.detail.DetailFragment
-import com.dev_marinov.mygames.presentation.detail.SharedViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
-import kotlin.collections.HashMap
-
+@AndroidEntryPoint
 class GamesFragment : Fragment() {
 
     val apiKey = "e0ecba986417447ebbaa87aad9d31458"
     private lateinit var bindingFragmentGames: FragmentGamesBinding
-
-    lateinit var sharedViewModel: SharedViewModel
-    lateinit var gamesViewModel: GamesViewModel
+    private val platform = "18,1,7"
+    lateinit var viewModel: GamesViewModel
 
     var onDateSetListenerFrom: DatePickerDialog.OnDateSetListener? = null // слушатель даты слева
     var onDateSetListenerTo: DatePickerDialog.OnDateSetListener? = null // слушатель даты справа
@@ -64,13 +59,12 @@ class GamesFragment : Fragment() {
     // метод для установки recyclerview, GridLayoutManager и AdapterListHome
     private fun myRecyclerLayoutManagerAdapter(container: ViewGroup?) {
 
-        gamesViewModel = ViewModelProvider(this)[GamesViewModel::class.java]
-        sharedViewModel = ViewModelProvider(requireActivity())[SharedViewModel::class.java]
+        viewModel = ViewModelProvider(this)[GamesViewModel::class.java]
 
         checkStatusAlertDialogDate(container)
         bindingFragmentGames.progressBar.visibility = View.VISIBLE
 
-        val gamesAdapter = GamesAdapter()
+        val gamesAdapter = GamesAdapter(viewModel::onClick)
         val staggeredGridLayoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         bindingFragmentGames.recyclerView.apply {
             setHasFixedSize(false)
@@ -78,22 +72,17 @@ class GamesFragment : Fragment() {
             adapter = gamesAdapter
         }
 
-
-        gamesViewModel.hashMapGames.observe(viewLifecycleOwner) {
+        viewModel.games.observe(viewLifecycleOwner) {
             bindingFragmentGames.progressBar.visibility = View.GONE
-            gamesViewModel.flagLoading = false
+            viewModel.flagLoading = false
             it?.let {
-                gamesAdapter.setUpdateData(it)
-                gamesAdapter.notifyDataSetChanged()
+                gamesAdapter.submitList(it)
             }
         }
 
-        gamesAdapter.setOnItemClickListener(object : GamesAdapter.onItemClickListener {
-            override fun onItemClick(position: Int) {
-                getClickPosition(position)
-                Log.e("333","-position=" +position )
-            }
-        })
+        viewModel.uploadData.observe(viewLifecycleOwner){
+            navigateToDetailFragment(it)
+        }
 
         bindingFragmentGames.btSetRangeDate.setOnClickListener { // кнопка выбора/установка диапазона дат для получения новых данных
             myAlertDialogMain(container)
@@ -104,20 +93,20 @@ class GamesFragment : Fragment() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 // эта часть отвечает за срабатывание запроса на получение дополнительных данных для записи в hashMap
                 // totalCountItem переменная всегда равно размеру hashmap в который добавляется + 20
-                gamesViewModel.totalCountItem = staggeredGridLayoutManager.itemCount
+                viewModel.totalCountItem = staggeredGridLayoutManager.itemCount
 
                 // эта часть отвечет только за передачу последнего видимомо элемента
                val lastVisibleItemArrayPositions2 = staggeredGridLayoutManager.findLastVisibleItemPositions(null)
-                gamesViewModel.lastVisibleItemPosition = getMaxPosition(lastVisibleItemArrayPositions2!!)
+                viewModel.lastVisibleItemPosition = getMaxPosition(lastVisibleItemArrayPositions2!!)
 
-                if (gamesViewModel.flagLoading == false
-                    && (gamesViewModel.totalCountItem - 5) ==  gamesViewModel.lastVisibleItemPosition) {
+                if (viewModel.flagLoading == false
+                    && (viewModel.totalCountItem - 5) ==  viewModel.lastVisibleItemPosition) {
                     // тут я запускаю новый запрос даных на сервер с offset
                     val runnable = Runnable {
-                        gamesViewModel.page = gamesViewModel.page + 1// переменная для увеличения значения offset
+                        viewModel.page = viewModel.page + 1// переменная для увеличения значения offset
 
-                        gamesViewModel.getGames(apiKey, gamesViewModel.dataFromString,
-                            gamesViewModel.dataToString, gamesViewModel.page)
+                        viewModel.getGames(apiKey, viewModel.dataFromString,
+                            viewModel.dataToString, viewModel.page, platform)
                     }
                     Handler(Looper.getMainLooper()).postDelayed(runnable, 100)
 
@@ -125,7 +114,7 @@ class GamesFragment : Fragment() {
                         bindingFragmentGames.progressBar.visibility = View.VISIBLE
                     }
 
-                    gamesViewModel.flagLoading = true // и возвращаю flagLoading в исходное состояние
+                    viewModel.flagLoading = true // и возвращаю flagLoading в исходное состояние
                 }
             }
 
@@ -139,54 +128,21 @@ class GamesFragment : Fragment() {
     private fun checkStatusAlertDialogDate(container: ViewGroup?) {
         // при создании макета проверяем статус был ли перед созданием макета открыт диалог
         // если да (true), значит запустим его снова
-        if(gamesViewModel.statusAlertDialogDate) {
+        if(viewModel.statusAlertDialogDate) {
             // обращаемся к вспомогательному классу диалога для запуска
             myAlertDialogMain(container)
-            if(gamesViewModel.statusLeftDate) {
+            if(viewModel.statusLeftDate) {
                 getCalendar(onDateSetListenerFrom) // запускаем левый календарь
             }
-            if(gamesViewModel.statusRightDate) {
+            if(viewModel.statusRightDate) {
                 getCalendar(onDateSetListenerTo) // запускаем правый календарь
             }
         }
     }
 
-    fun getClickPosition(position: Int) {
-
-        val hashMapDetail: HashMap<Int, ObjectListDetail> = HashMap()
-        gamesViewModel.hashMapGames.value!![position]?.let {
-            hashMapDetail[0] = ObjectListDetail(
-                it.name!!,
-                it.released!!,
-                it.rating!!,
-                it.rating_top!!,
-                it.added!!,
-                it.updated!!,
-                it.short_screenshots,
-                it.platforms as MutableList<Platforms>
-            )
-        }
-
-        val hashMapGamesDetail: MutableLiveData<HashMap<Int, ObjectListDetail>> = MutableLiveData()
-
-            // запись врменного массива hashMapDetail в hashMapGamesDetail
-        hashMapGamesDetail.value = hashMapDetail
-
-        val fragmentDetail = DetailFragment()
-
-        sharedViewModel.sendMessage(hashMapDetail)
-
-        requireActivity().supportFragmentManager
-            .beginTransaction()
-            .setCustomAnimations(
-                R.anim.enter_right_to_left,
-                R.anim.exit_right_to_left,
-                R.anim.enter_left_to_right,
-                R.anim.exit_right_to_left
-            )
-            .replace(R.id.llFragDetail, fragmentDetail, "llFragDetail")
-            .addToBackStack("llFragDetail")
-            .commit()
+    private fun navigateToDetailFragment(id: String) {
+        val action = GamesFragmentDirections.actionGamesFragmentToDetailFragment(id)
+        findNavController().navigate(action)
    }
 
     private fun myAlertDialogMain(container: ViewGroup?) { // установка дат
@@ -210,19 +166,19 @@ class GamesFragment : Fragment() {
         dialog.window!!.attributes = lp
 
         // костыль для повторного отображения диалога при повороте экрана
-        gamesViewModel.statusAlertDialogDate = true
+        viewModel.statusAlertDialogDate = true
         dialog.setOnDismissListener {
             Log.e("333", "-dialog.setOnDismissListener=")
-            gamesViewModel.statusAlertDialogDate = false
+            viewModel.statusAlertDialogDate = false
         }
 
         // отображаем слева в textview например "2019-09-01," только без запятой, т.е. "2019-09-01"
-        bindingAlertDialogDate.tvDateFrom.text = String.format(gamesViewModel.dataFromString)
+        bindingAlertDialogDate.tvDateFrom.text = String.format(viewModel.dataFromString)
             .replace(",","")
 
         // клик на textview слева
         bindingAlertDialogDate.tvDateFrom.setOnClickListener {
-            gamesViewModel.statusLeftDate = true
+            viewModel.statusLeftDate = true
             getCalendar(onDateSetListenerFrom)
             Log.e("333", "bindingAlertDialogDate.tvDateFro")
         }
@@ -238,16 +194,16 @@ class GamesFragment : Fragment() {
             val dateConverter = DateConverter()
             val objectConvertDate = ObjectConvertDate(year = year,month = month, day = day)
             // получаем из метода getDate строку с переработанной датой под сетевой запрос апи
-            gamesViewModel.dataFromString = dateConverter.getName(objectConvertDate) + ","
+            viewModel.dataFromString = dateConverter.getName(objectConvertDate) + ","
             // получаем из метода getDate строку с переработанной датой для отображения в tvDateFrom
             bindingAlertDialogDate.tvDateFrom.text = dateConverter.getName(objectConvertDate)
         }
 
             // установка даты для отображения в tvDateTo
-        bindingAlertDialogDate.tvDateTo.text = String.format(gamesViewModel.dataToString)
+        bindingAlertDialogDate.tvDateTo.text = String.format(viewModel.dataToString)
 
         bindingAlertDialogDate.tvDateTo.setOnClickListener {
-            gamesViewModel.statusRightDate = true
+            viewModel.statusRightDate = true
             getCalendar(onDateSetListenerTo)
         }
 
@@ -258,7 +214,7 @@ class GamesFragment : Fragment() {
             val dateConverter = DateConverter()
             val objectConvertDate = ObjectConvertDate(year = year,month = month, day = day)
             // получаем из метода getDate строку с переработанной датой под сетевой запрос апи
-            gamesViewModel.dataToString = dateConverter.getName(objectConvertDate)
+            viewModel.dataToString = dateConverter.getName(objectConvertDate)
             // получаем из метода getDate строку с переработанной датой для отображения в tvDateFrom
             bindingAlertDialogDate.tvDateTo.text = dateConverter.getName(objectConvertDate)
 
@@ -272,26 +228,25 @@ class GamesFragment : Fragment() {
             dialog.dismiss()
 
             // удаляем из даты слева тире и запятую
-            val stringFrom1 = gamesViewModel.dataFromString.replace("-","")
+            val stringFrom1 = viewModel.dataFromString.replace("-","")
             val stringFrom2 = stringFrom1.replace(",","").toIntOrNull()
             // удаляем из даты справа тире
-            val stringTo = gamesViewModel.dataToString.replace("-","").toIntOrNull()
+            val stringTo = viewModel.dataToString.replace("-","").toIntOrNull()
 
             Log.e("333","=ДО stringFrom2="+ stringFrom2 + "=stringTo=" + stringTo)
             // проверка на то, что пользовтель ввел первую дату меньше чем вторую
             if ((stringFrom2!! - stringTo!!) <= 0) {
-                    if(gamesViewModel.hashMapGames.value!!.size > 0) {
-                        gamesViewModel.hashMapGames.value!!.clear()
-                        gamesViewModel.hashMapTemp.clear()
+                    if(viewModel.games.value!!.size > 0) {
+                        viewModel.clearGames()
                     }
 
                 Log.e("333","=ПОСЛЕ stringFrom2="+ stringFrom2 + "=stringTo=" + stringTo)
-                Log.e("333","=dataFromString="+ gamesViewModel.dataFromString + "=dataToString=" + gamesViewModel.dataToString)
+                Log.e("333","=dataFromString="+ viewModel.dataFromString + "=dataToString=" + viewModel.dataToString)
 
                 // https://api.rawg.io/api/games?key=YOUR_API_KEY&dates=2019-09-01,2019-09-30&platforms=18,1,7
                 // вызов нового апи запроса в сеть для получения данных об играх
-                gamesViewModel.getGames(apiKey, gamesViewModel.dataFromString as String,
-                    gamesViewModel.dataToString as String, 1)
+                viewModel.getGames(apiKey, viewModel.dataFromString as String,
+                    viewModel.dataToString as String, 1, platform)
 
                 (context as MainActivity?)?.runOnUiThread {
                     bindingFragmentGames.progressBar.visibility = View.VISIBLE
@@ -323,11 +278,11 @@ class GamesFragment : Fragment() {
 
         datePickerDialog.setOnDismissListener {
 
-            if(gamesViewModel.statusLeftDate) {
-                gamesViewModel.statusLeftDate = false
+            if(viewModel.statusLeftDate) {
+                viewModel.statusLeftDate = false
             }
-            if(gamesViewModel.statusRightDate) {
-                gamesViewModel.statusRightDate = false
+            if(viewModel.statusRightDate) {
+                viewModel.statusRightDate = false
             }
         }
     }

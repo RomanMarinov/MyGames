@@ -7,6 +7,8 @@
     <string name="my_games">MyGames</string>
 
     <string name="Added">Added</string>
+    <string name="Genres">Genres</string>
+    <string name="Description">Description</string>
     <string name="Released">Released</string>
     <string name="Updated">Updated</string>
     <string name="Rating">Rating</string>

@@ -2,13 +2,16 @@ package com.dev_marinov.mygames.presentation.detail
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.dev_marinov.mygames.domain.Screenshot
 import com.dev_marinov.mygames.databinding.ItemGamesDetailBinding
+import com.dev_marinov.mygames.domain.screenshot.ScreenShotsImages
 import com.squareup.picasso.Picasso
 
-class DetailAdapter(var newArrayScreenShots: MutableList<Screenshot>)
-    : RecyclerView.Adapter<DetailAdapter.ViewHolder>(){
+class DetailAdapter : ListAdapter<ScreenShotsImages, DetailAdapter.ViewHolder>(DetailDiffUtilCallback()){
+
+    private var screenShotsImages: List<ScreenShotsImages> = ArrayList()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -17,11 +20,16 @@ class DetailAdapter(var newArrayScreenShots: MutableList<Screenshot>)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(newArrayScreenShots[position].image)
+        holder.bind(screenShotsImages[position].image)
         }
 
+    override fun submitList(list: List<ScreenShotsImages>?) {
+        super.submitList(list)
+        list?.let { this.screenShotsImages = it.toList() }
+    }
+
     override fun getItemCount(): Int {
-        return newArrayScreenShots.size
+        return screenShotsImages.size
     }
 
     class ViewHolder (private val binding: ItemGamesDetailBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -35,6 +43,17 @@ class DetailAdapter(var newArrayScreenShots: MutableList<Screenshot>)
                 .into(binding.imgDetail) // -----> картинка
         }
 
+    }
+
+}
+
+class DetailDiffUtilCallback : DiffUtil.ItemCallback<ScreenShotsImages>() {
+    override fun areItemsTheSame(oldItem: ScreenShotsImages, newItem: ScreenShotsImages): Boolean {
+        return oldItem == newItem
+    }
+
+    override fun areContentsTheSame(oldItem: ScreenShotsImages, newItem: ScreenShotsImages): Boolean {
+        return oldItem == newItem
     }
 
 }

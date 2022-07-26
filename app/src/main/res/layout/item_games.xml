@@ -5,7 +5,7 @@
     <data>
         <variable
             name="itemGames"
-            type="com.dev_marinov.mygames.domain.Game" />
+            type="com.dev_marinov.mygames.domain.game.Game" />
     </data>
 
     <androidx.cardview.widget.CardView

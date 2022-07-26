@@ -21,8 +21,9 @@ import com.dev_marinov.mygames.databinding.WindowsAlertdialogExitBinding
 import android.view.LayoutInflater
 import androidx.lifecycle.ViewModelProvider
 import com.dev_marinov.mygames.presentation.games.GamesFragment
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     private lateinit var bindingActivityMain: ActivityMainBinding
@@ -50,28 +51,7 @@ class MainActivity : AppCompatActivity() {
             myAlertDialog()
         }
 
-        setAnimAndTransaction()
     }
-
-   private fun setAnimAndTransaction(){
-
-       val runnable1 = Runnable{ // анимация шарики при старте
-           bindingActivityMain.animationView.playAnimation()
-       }
-       Handler(Looper.getMainLooper()).postDelayed(runnable1, 0)
-       bindingActivityMain.animationView.cancelAnimation()
-
-       val runnable2 = Runnable{ // задержка 2 сек перед переходом во FragmentList
-           if (mySavedInstanceState == null) {
-               val fragmentList = GamesFragment()
-               val fragmentManager = supportFragmentManager
-               val fragmentTransaction = fragmentManager.beginTransaction()
-               fragmentTransaction.add(R.id.llFragList, fragmentList)
-               fragmentTransaction.commit()
-           }
-       }
-       Handler(Looper.getMainLooper()).postDelayed(runnable2, 2000)
-   }
 
     private fun setWindow() {
         val window = window
@@ -105,15 +85,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onBackPressed() {
-        // как только будет ноль (последний экран) выполниться else
-        if (supportFragmentManager.backStackEntryCount > 0) {
-            super.onBackPressed()
-        } else {
-            supportFragmentManager.popBackStack() // удаление фрагментов из транзакции
-            myAlertDialog() // метод реализации диалога с пользователем закрыть приложение или нет
-        }
-    }
+//    override fun onBackPressed() {
+//        // как только будет ноль (последний экран) выполниться else
+//        if (supportFragmentManager.backStackEntryCount > 0) {
+//            super.onBackPressed()
+//        } else {
+//            supportFragmentManager.popBackStack() // удаление фрагментов из транзакции
+//           // myAlertDialog() // метод реализации диалога с пользователем закрыть приложение или нет
+//        }
+//    }
 
     private fun myAlertDialog() {
         val bindingAlertDialogExit: WindowsAlertdialogExitBinding = DataBindingUtil

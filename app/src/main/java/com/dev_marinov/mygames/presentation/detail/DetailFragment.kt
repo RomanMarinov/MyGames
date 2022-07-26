@@ -1,59 +1,95 @@
 package com.dev_marinov.mygames.presentation.detail
 
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dev_marinov.mygames.R
 import com.dev_marinov.mygames.databinding.FragmentDetailBinding
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class DetailFragment : Fragment() {
 
-    private lateinit var bindingFragmentDetail: FragmentDetailBinding
+    private lateinit var binding: FragmentDetailBinding
+    private val args: DetailFragmentArgs by navArgs()
 
-    lateinit var sharedViewModel: SharedViewModel
-    lateinit var detailViewModel: DetailViewModel
+    lateinit var viewModel: DetailViewModel
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
 
-        bindingFragmentDetail = DataBindingUtil.inflate(inflater, R.layout.fragment_detail, container,false)
+        binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail, container, false)
 
-        detailViewModel = ViewModelProvider(this)[DetailViewModel::class.java]
-        sharedViewModel = ViewModelProvider(requireActivity())[SharedViewModel::class.java]
+        return binding.root;
+    }
 
-        sharedViewModel.message.observe(viewLifecycleOwner) {
-            detailViewModel.detail = it
-            setDetail()
-        }
-
-        return bindingFragmentDetail.root;
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setDetail()
     }
 
     private fun setDetail() {
+        viewModel = ViewModelProvider(this)[DetailViewModel::class.java]
 
-        bindingFragmentDetail.tvName.text = detailViewModel.detail[0]!!.nameGame
-        bindingFragmentDetail.tvReleased.text = detailViewModel.detail[0]!!.released
-        bindingFragmentDetail.tvRating.text = detailViewModel.detail[0]!!.rating
-        bindingFragmentDetail.tvRatingTop.text = detailViewModel.detail[0]!!.ratingTop
-        bindingFragmentDetail.tvAdded.text = detailViewModel.detail[0]!!.added
-        bindingFragmentDetail.tvUpdated.text = detailViewModel.detail[0]!!.updated.substring(0, 10) // урезать дату
+        val linearLayoutManager =
+            LinearLayoutManager(requireActivity(), LinearLayoutManager.HORIZONTAL, false)
 
-//        // установка названий платфом через перебор arrayPlatforms
-//        for (item in detailViewModel.detail[0]!!.arrayPlatforms.indices) {
-//            bindingFragmentDetail.tvArrayPlatforms.text = (bindingFragmentDetail.tvArrayPlatforms.text.toString()
-//                    + (detailViewModel.detail[0]!!.arrayPlatforms[item].platform.name.toString()) + ", ")
-//        }
-
-        val linearLayoutManager = LinearLayoutManager(requireActivity(), LinearLayoutManager.HORIZONTAL, false)
-        val gamesDetailAdapter = DetailAdapter(detailViewModel.detail[0]!!.arrayScreenShots)
-
-        bindingFragmentDetail.recyclerViewDetail.apply {
+        val adapter = DetailAdapter()
+        binding.recyclerViewDetail.apply {
             layoutManager = linearLayoutManager
-            adapter = gamesDetailAdapter
+            this.adapter = adapter
+        }
+
+        viewModel.getDetail(args.id)
+
+        viewModel.detail.observe(viewLifecycleOwner) {
+
+            binding.tvName.text = it.name
+            binding.tvReleased.text = it.released
+            binding.tvRating.text = it.rating
+            binding.tvRatingTop.text = it.ratingTop
+            binding.tvAdded.text = it.added
+            binding.tvUpdated.text = it.updated?.substring(0, 10) // урезать дату
+
+            it.description?.let { string->
+                val text1 = string.replace("<p>","")
+                val text2 = text1.replace("<br />", "")
+                val text3 = text2.replace("</p>","")
+                binding.tvDescription.text = text3
+            }
+
+
+           // binding.tvDescription.text = it.description
+
+            for (item in it.genres!!.indices) {
+                binding.tvGenres.text = (binding.tvGenres.text.toString()
+                        + (it.genres[item].name.toString()) + ", ")
+                if (item == it.genres.size - 1) {
+                    binding.tvGenres.text = binding.tvGenres.text.substring(0, binding.tvGenres.text.length - 2)
+                }
+            }
+
+            for (item in it.detailPlatforms!!.indices) {
+                binding.tvPlatforms.text = (binding.tvPlatforms.text.toString()
+                        + (it.detailPlatforms[item].name.toString()) + ", ")
+                if (item == it.detailPlatforms.size - 1) {
+                    binding.tvPlatforms.text = binding.tvPlatforms.text.substring(0, binding.tvPlatforms.text.length - 2)
+                }
+            }
+        }
+
+        viewModel.screenShots.observe(viewLifecycleOwner){
+            adapter.submitList(it)
         }
     }
 
