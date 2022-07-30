@@ -1,22 +1,25 @@
 # MyGames
 
 ## Описание 
-Андроид приложение позволяет получить данные игр которые выходили на pc и консолях.
-Получать краткую информацию о них.
+Андроид приложение позволяет 
+- получать данные разных игр
+- получать детализацию выбранных игр 
 
-## Работа с кодом 
+## Технологии 
 Клиентская часть: android studio kotlin. Запрос api.
 
+- clean,<br/>
 - viewModel,<br/>
 - mvvm, <br/>
-- dagger2, <br/>
+- di hilt, <br/>
+- navigation, <br/>
 - databinding, <br/>
 - animation start,<br/>
 - animation fragment,<br/>
 - recyclerViews,<br/>
-- alertDialogs,<br/>
+- dialogs,<br/>
 - retrofit<br/>
 
-## Скрины экрана 
+## Демонстрация 
 
 https://user-images.githubusercontent.com/61028366/167391181-e032884a-4979-4eff-9d7e-9ded9ffac505.mp4
