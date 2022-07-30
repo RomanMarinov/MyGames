@@ -18,29 +18,35 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.dev_marinov.mygames.R
 import com.dev_marinov.mygames.databinding.WindowsAlertdialogBinding
-import com.dev_marinov.mygames.data.ObjectConvertDate
-import com.dev_marinov.mygames.domain.DateConverter
 import com.dev_marinov.mygames.databinding.FragmentGamesBinding
 import dagger.hilt.android.AndroidEntryPoint
+import android.view.ViewGroup
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 
 @AndroidEntryPoint
 class GamesFragment : Fragment() {
 
-    val apiKey = "e0ecba986417447ebbaa87aad9d31458"
     private lateinit var binding: FragmentGamesBinding
-    private val platform = "18,1,7"
-    lateinit var viewModel: GamesViewModel
+    private lateinit var bindingAlertDialogDate: WindowsAlertdialogBinding
 
-    var onDateSetListenerFrom: DatePickerDialog.OnDateSetListener? = null // слушатель даты слева
-    var onDateSetListenerTo: DatePickerDialog.OnDateSetListener? = null // слушатель даты справа
+    private val viewModel: GamesViewModel by viewModels()
 
+    private var onDateSetListenerFrom: DatePickerDialog.OnDateSetListener? = null // слушатель даты слева
+    private var onDateSetListenerTo: DatePickerDialog.OnDateSetListener? = null // слушатель даты справа
+    lateinit var dialog: Dialog
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         return initInterFace(inflater, container)
     }
 
     private fun initInterFace(inflater: LayoutInflater, container: ViewGroup?): View {
-        container?.let { container.removeAllViewsInLayout() }
+        container?.let { it.removeAllViewsInLayout() }
 
         val orientation = requireActivity().resources.configuration.orientation
         if (orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -48,21 +54,38 @@ class GamesFragment : Fragment() {
         } else {
             binding = DataBindingUtil.inflate(inflater, R.layout.fragment_games, container, false)
         }
-            setLayout(container)
+
+        setBindingDialogDate(inflater, container)
+        createdDialog()
+        setLayout()
+        checkStatusAlertDialogDate()
 
         return binding.root
     }
 
-    private fun setLayout(container: ViewGroup?) {
+    private fun setBindingDialogDate(inflater: LayoutInflater, container: ViewGroup?) {
+        bindingAlertDialogDate = DataBindingUtil
+            .inflate(inflater, R.layout.windows_alertdialog, container, false)
+    }
 
-        viewModel = ViewModelProvider(this)[GamesViewModel::class.java]
+    private fun createdDialog(){
+        dialog = Dialog(requireActivity())
+        dialog.setContentView(bindingAlertDialogDate.root)
+        dialog.setCancelable(true) // чтобы можно было просто кликнув полю сбросить окно
+        // установка ширины диалога, а то больше ничем не изменить ширину диалога
+        val lp = WindowManager.LayoutParams()
+        lp.copyFrom(dialog.window!!.attributes)
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT
+//        dialog.show()
+        dialog.window!!.attributes = lp
+    }
 
-        checkStatusAlertDialogDate(container)
+    private fun setLayout() {
 
-        binding.progressBar.visibility = View.VISIBLE
 
         val gamesAdapter = GamesAdapter(viewModel::onClick)
-        val staggeredGridLayoutManager = StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
+        val staggeredGridLayoutManager =
+            StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
         binding.recyclerView.apply {
             setHasFixedSize(false)
             layoutManager = staggeredGridLayoutManager
@@ -70,155 +93,105 @@ class GamesFragment : Fragment() {
         }
 
         viewModel.games.observe(viewLifecycleOwner) {
-            it?.let {
-                gamesAdapter.submitList(it)
-            }
+            it?.let { gamesAdapter.submitList(it) }
         }
 
-        viewModel.uploadData.observe(viewLifecycleOwner){
+        viewModel.uploadData.observe(viewLifecycleOwner) {
             navigateToDetailFragment(it)
         }
 
         binding.btSetRangeDate.setOnClickListener { // кнопка выбора/установка диапазона дат для получения новых данных
-            setAlertDialogRangeDate(container)
+            setAlertDialogRangeDate()
         }
 
         viewModel.flagLoading.observe(viewLifecycleOwner) {
             binding.progressBar.isVisible = it
         }
 
-        val scrollListener: RecyclerView.OnScrollListener = object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                viewModel.onScroll(staggeredGridLayoutManager.itemCount, staggeredGridLayoutManager.findLastVisibleItemPositions(null))
+        viewModel.flagToast.observe(viewLifecycleOwner) {
+            if (it == true) {
+                val toast = Toast.makeText(activity, "The first date must be less than the second date", Toast.LENGTH_LONG)
+                toast.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0, 0)
+                toast.show()
             }
         }
+
+        viewModel.dataFromString.observe(viewLifecycleOwner) {
+            // отображаем слева в textview например "2019-09-01," только без запятой, т.е. "2019-09-01"
+            bindingAlertDialogDate.tvDateFrom.text = it.replace(",", "")
+        }
+
+        viewModel.dataToString.observe(viewLifecycleOwner) {
+            // установка даты для отображения в tvDateTo
+            bindingAlertDialogDate.tvDateTo.text = it
+        }
+
+        val scrollListener: RecyclerView.OnScrollListener =
+            object : RecyclerView.OnScrollListener() {
+                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                    viewModel.onScroll(
+                        staggeredGridLayoutManager.itemCount,
+                        staggeredGridLayoutManager.findLastVisibleItemPositions(null)
+                    )
+                }
+            }
         binding.recyclerView.addOnScrollListener(scrollListener)
     }
 
-    private fun checkStatusAlertDialogDate(container: ViewGroup?) {
+    private fun checkStatusAlertDialogDate() {
         // при создании макета проверяем статус был ли перед созданием макета открыт диалог
         // если да (true), значит запустим его снова
 
-        if (viewModel.statusAlertDialogDate) {
-            setAlertDialogRangeDate(container)
+        viewModel.statusAlertDialogDate.asLiveData().observe(viewLifecycleOwner){
+            Log.e("333","=it=" + it)
+            if(it) {
+                setAlertDialogRangeDate()
 
-            if (viewModel.statusLeftDate) {
-                getCalendar(onDateSetListenerFrom) // запускаем левый календарь
-            }
-            if(viewModel.statusRightDate) {
-                getCalendar(onDateSetListenerTo) // запускаем правый календарь
+                if (viewModel.statusLeftDate) {
+                    getCalendar(onDateSetListenerFrom) // запускаем левый календарь
+                }
+                if (viewModel.statusRightDate) {
+                    getCalendar(onDateSetListenerTo) // запускаем правый календарь
+                }
             }
         }
+
     }
 
-    private fun setAlertDialogRangeDate(container: ViewGroup?) { // установка дат
-        val bindingAlertDialogDate: WindowsAlertdialogBinding = DataBindingUtil
-            .inflate(LayoutInflater.from(requireActivity()),
-                R.layout.windows_alertdialog, container, false)
+    private fun setAlertDialogRangeDate() { // установка дат
 
-        val dialog = Dialog(requireActivity())
-        dialog.setContentView(bindingAlertDialogDate.root)
-        dialog.setCancelable(true) // чтобы можно было просто кликнув полю сбросить окно
-
-        // установка ширины диалога, а то больше ничем не изменить ширину диалога
-        val lp = WindowManager.LayoutParams()
-        lp.copyFrom(dialog.window!!.attributes)
-        lp.width = WindowManager.LayoutParams.MATCH_PARENT
-//        lp.height = WindowManager.LayoutParams.MATCH_PARENT
         dialog.show()
-        dialog.window!!.attributes = lp
 
-        // для повторного отображения диалога при повороте экрана
-
-
-
-
-        viewModel.statusAlertDialogDate = true
+        viewModel.setStatusAlertDialogDate(true)
         dialog.setOnDismissListener {
-            viewModel.statusAlertDialogDate = false
+            viewModel.setStatusAlertDialogDate(false)
         }
 
-        // отображаем слева в textview например "2019-09-01," только без запятой, т.е. "2019-09-01"
-        bindingAlertDialogDate.tvDateFrom.text = String.format(viewModel.dataFromString)
-            .replace(",","")
-
-        // клик на textview слева
         bindingAlertDialogDate.tvDateFrom.setOnClickListener {
 
             viewModel.statusLeftDate = true
             getCalendar(onDateSetListenerFrom)
-            Log.e("333", "bindingAlertDialogDate.tvDateFro")
         }
-
-            // запись слева когда мы покрутили календарь
         onDateSetListenerFrom = DatePickerDialog.OnDateSetListener { datePicker, year, month, day ->
-            Log.e("333", "-datePicker="+ "-year-" + year + "-month-" + month + "-day-" + day)
-
-
-            viewModel.onDateSelected(year, month, day)
-
-            // обращаемся к всопомгательному классу конвертации даты календаря
-            val dateConverter = DateConverter()
-            val objectConvertDate = ObjectConvertDate(year = year,month = month, day = day)
-            // получаем из метода getDate строку с переработанной датой под сетевой запрос апи
-            viewModel.dataFromString = dateConverter.getName(objectConvertDate) + ","
-            // получаем из метода getDate строку с переработанной датой для отображения в tvDateFrom
-            bindingAlertDialogDate.tvDateFrom.text = dateConverter.getName(objectConvertDate)
+            viewModel.onDateSelectedFrom(year, month, day)
         }
-
-            // установка даты для отображения в tvDateTo
-        bindingAlertDialogDate.tvDateTo.text = String.format(viewModel.dataToString)
 
         bindingAlertDialogDate.tvDateTo.setOnClickListener {
+
             viewModel.statusRightDate = true
             getCalendar(onDateSetListenerTo)
         }
-
         onDateSetListenerTo = DatePickerDialog.OnDateSetListener { datePicker, year, month, day ->
-            Log.e("333", "-datePicker=" + datePicker + "-year-" + year + "-month-" + month + "-day-" + day)
-
-            // обращаемся к всопомгательному классу конвертации даты календаря
-            val dateConverter = DateConverter()
-            val objectConvertDate = ObjectConvertDate(year = year,month = month, day = day)
-            // получаем из метода getDate строку с переработанной датой под сетевой запрос апи
-            viewModel.dataToString = dateConverter.getName(objectConvertDate)
-            // получаем из метода getDate строку с переработанной датой для отображения в tvDateFrom
-            bindingAlertDialogDate.tvDateTo.text = dateConverter.getName(objectConvertDate)
-
+            viewModel.onDateSelectedTo(year, month, day)
         }
 
         bindingAlertDialogDate.btCancel.setOnClickListener {
             dialog.dismiss()
             dialog.cancel()
         }
-        bindingAlertDialogDate.btOk.setOnClickListener{
+        bindingAlertDialogDate.btOk.setOnClickListener {
             dialog.dismiss()
-
-            // удаляем из даты слева тире и запятую
-            val stringFrom1 = viewModel.dataFromString.replace("-","")
-            val stringFrom2 = stringFrom1.replace(",","").toIntOrNull()
-            // удаляем из даты справа тире
-            val stringTo = viewModel.dataToString.replace("-","").toIntOrNull()
-
-            Log.e("333","=ДО stringFrom2="+ stringFrom2 + "=stringTo=" + stringTo)
-            // проверка на то, что пользовтель ввел первую дату меньше чем вторую
-            if ((stringFrom2!! - stringTo!!) <= 0) {
-                    if(viewModel.games.value!!.size > 0) {
-                        viewModel.clearGames()
-                    }
-
-                Log.e("333","=ПОСЛЕ stringFrom2="+ stringFrom2 + "=stringTo=" + stringTo)
-                Log.e("333","=dataFromString="+ viewModel.dataFromString + "=dataToString=" + viewModel.dataToString)
-
-                // https://api.rawg.io/api/games?key=YOUR_API_KEY&dates=2019-09-01,2019-09-30&platforms=18,1,7
-                // вызов нового апи запроса в сеть для получения данных об играх
-                viewModel.getGames(apiKey, viewModel.dataFromString as String,
-                    viewModel.dataToString as String, 1, platform)
-            }else{
-                val toast = Toast.makeText(activity, "The first date must be less than the second date", Toast.LENGTH_LONG)
-                toast.setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL, 0, 0)
-                toast.show()
-            }
+            viewModel.getGamesByCalendar()
         }
     }
 
@@ -232,16 +205,18 @@ class GamesFragment : Fragment() {
         val datePickerDialog = DatePickerDialog(
             requireActivity(),
             android.R.style.Theme_Holo_Dialog,
-            onDateSetListener, year, month, day)
+            onDateSetListener, year, month, day
+        )
         datePickerDialog.window?.setBackgroundDrawable(ColorDrawable(R.drawable.gradient))
         datePickerDialog.show()
 
+        // ИСПРАВИТЬ
         datePickerDialog.setOnDismissListener {
 
             if (viewModel.statusLeftDate) {
                 viewModel.statusLeftDate = false
             }
-            if(viewModel.statusRightDate) {
+            if (viewModel.statusRightDate) {
                 viewModel.statusRightDate = false
             }
         }
@@ -251,35 +226,5 @@ class GamesFragment : Fragment() {
         val action = GamesFragmentDirections.actionGamesFragmentToDetailFragment(id)
         findNavController().navigate(action)
     }
-//    // функция переработки полученной даты календаря (где нет нулей, там поставил)
-//    fun convertDate(i: Int, i2: Int, i3: Int): String {
-//        // i - год, i2 - месяц(январь с нуля идет отсчет), i3 - день
-//        val i2 = i2 + 1 // + 1
-//
-//        // если месяц не входит в диапазон от 10 до 12, а день входит от 10 до 31
-//        if (i2 !in 10..12 && i3 in 10..31) return String.format("$i" + "-" + "0$i2" + "-" + "$i3")
-//        // если месяц входит в диапазон от 10 до 12, а день не входит от 10 до 31
-//        if (i2 in 10..12 && i3 !in 10..31) return String.format("$i" + "-" + "$i2" + "-" + "0$i3")
-//        // если месяц входит в диапазон от 10 до 12, и день входит от 10 до 31
-//        if (i2 in 10..12 && i3 in 10..31) return String.format("$i" + "-" + "$i2" + "-" + "$i3")
-//        // если месяц не входит в диапазон от 10 до 12, и день не входит от 10 до 31
-//        if (i2 !in 10..12 && i3 !in 10..31) return String.format("$i" + "-" + "0$i2" + "-" + "0$i3")
-//
-//        return ""
-//    }
 
 }
-
-//open class MyClass1{
-//    open fun one(){
-//        println("что печатает")
-//    }
-//
-//}
-//
-//class MyClass2 : MyClass1() {
-////    fun one(){
-////        println("что печатает")
-////    }
-//
-//}

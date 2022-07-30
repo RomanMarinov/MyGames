@@ -1,13 +1,12 @@
 package com.dev_marinov.mygames.presentation.detail
 
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dev_marinov.mygames.R
@@ -20,26 +19,23 @@ class DetailFragment : Fragment() {
     private lateinit var binding: FragmentDetailBinding
     private val args: DetailFragmentArgs by navArgs()
 
-    lateinit var viewModel: DetailViewModel
+    private val viewModel by viewModels<DetailViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-
         binding = DataBindingUtil.inflate(inflater, R.layout.fragment_detail, container, false)
-
         return binding.root;
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setDetail()
+        setLayout()
     }
 
-    private fun setDetail() {
-        viewModel = ViewModelProvider(this)[DetailViewModel::class.java]
+    private fun setLayout() {
 
         val linearLayoutManager =
             LinearLayoutManager(requireActivity(), LinearLayoutManager.HORIZONTAL, false)
@@ -67,9 +63,6 @@ class DetailFragment : Fragment() {
                 val text3 = text2.replace("</p>","")
                 binding.tvDescription.text = text3
             }
-
-
-           // binding.tvDescription.text = it.description
 
             for (item in it.genres!!.indices) {
                 binding.tvGenres.text = (binding.tvGenres.text.toString()

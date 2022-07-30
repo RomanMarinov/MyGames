@@ -6,9 +6,10 @@ import com.dev_marinov.mygames.domain.screenshot.ScreenShots
 import com.dev_marinov.mygames.domain.screenshot.ScreenShotsImages
 
 interface IGameRepository {
-    suspend fun getGames(apiKey: String, dataFromString: String, dataToString: String, page: Int, platforms: String): List<Game>?
 
-    suspend fun getDetail(apiKey: String, id: String, platforms: String): Detail?
+    suspend fun getGames(dataFromString: String, dataToString: String, page: Int): List<Game>?
 
-    suspend fun getScreenShot(apiKey: String, id: String, platforms: String): List<ScreenShotsImages>?
+    suspend fun getDetail(id: String): Detail?
+
+    suspend fun getScreenShot(id: String): List<ScreenShotsImages>?
 }

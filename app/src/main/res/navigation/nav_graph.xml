@@ -40,6 +40,6 @@
     </fragment>
     <dialog
         android:id="@+id/exitDialogFragment"
-        android:name="com.dev_marinov.geniussonglyrics.presentation.exitdialog.ExitDialogFragment"
+        android:name="com.dev_marinov.mygames.presentation.exitdialog.ExitDialogFragment"
         android:label="ExitDialogFragment" />
 </navigation>
